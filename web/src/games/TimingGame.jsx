@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Result from '../components/Result.jsx';
+import LiveBoard from '../components/LiveBoard.jsx';
 import { submitScore } from '../lib/api.js';
 import { getPlayer, isPilot, recordRound } from '../lib/player.js';
 import { TIMING_TARGETS, boardId } from './index.js';
@@ -85,6 +86,7 @@ export default function TimingGame({ game, onHome }) {
         <button className="btn primary big" onClick={() => setPhase('ready')}>
           {target}초 도전
         </button>
+        <LiveBoard key={target} game={{ ...game, title: `딱 ${target}초` }} boardKey={boardId('timing', target)} limit={3} title={`딱 ${target}초 TOP 3`} compact />
       </main>
     );
 

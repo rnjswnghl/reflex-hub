@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import LiveBoard from '../../components/LiveBoard.jsx';
 import Result from '../../components/Result.jsx';
 import { reportStart, submitReactionRound } from '../../lib/api.js';
 import { getPlayer, isPilot, recordRound, savePlayer, uuid } from '../../lib/player.js';
@@ -151,6 +152,7 @@ export default function ReactionGame({ game, onHome }) {
         <button className="btn primary big" onClick={start}>
           시작
         </button>
+        <LiveBoard game={game} limit={3} title="지금 TOP 3" compact />
       </main>
     );
   }

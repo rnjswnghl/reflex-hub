@@ -3,6 +3,7 @@ import { GAMES, TIMING_TARGETS } from '../games/index.js';
 import { fetchStats } from '../lib/api.js';
 import { getPlayer, nickName, rerollNick } from '../lib/player.js';
 import GameIcon from './GameIcon.jsx';
+import LiveBoard from './LiveBoard.jsx';
 
 function cardMeta(g, player) {
   if (g.kind === 'prepost') {
@@ -39,6 +40,55 @@ function Card({ g, player, onPlay }) {
         <span>{cardMeta(g, player)}</span>
       </span>
     </button>
+  );
+}
+
+const TAB_KEY = 'reflexhub.hub.board';
+function readTab() {
+  try {
+    const v = JSON.parse(localStorage.getItem(TAB_KEY) || 'null');
+    if (v && GAMES.some((g) => g.id === v.game && g.kind === 'record') && TIMING_TARGETS.includes(v.target)) return v;
+  } catch {
+    /* 무시 */
+  }
+  return { game: 'reaction', target: 3 };
+}
+
+// 허브의 실시간 랭킹: 기록 게임 탭 + '딱 N초'는 목표 시간 선택
+function Rankings() {
+  const [tab, setTab] = useState(readTab);
+  const set = (next) => {
+    const v = { ...tab, ...next };
+    setTab(v);
+    try {
+      localStorage.setItem(TAB_KEY, JSON.stringify(v));
+    } catch {
+      /* 무시 */
+    }
+  };
+  const game = GAMES.find((g) => g.id === tab.game);
+  const key = game.id === 'timing' ? `timing-${tab.target}` : game.id;
+  const shown = game.id === 'timing' ? { ...game, title: `딱 ${tab.target}초` } : game;
+  return (
+    <section className="rankings">
+      <div className="tabs" role="tablist" aria-label="게임별 순위">
+        {GAMES.filter((g) => g.kind === 'record').map((g) => (
+          <button key={g.id} role="tab" aria-selected={g.id === tab.game} className={`hue-${g.hue}${g.id === tab.game ? ' on' : ''}`} onClick={() => set({ game: g.id })}>
+            {g.title}
+          </button>
+        ))}
+      </div>
+      {game.id === 'timing' && (
+        <div className="seg small hue-violet" role="radiogroup" aria-label="목표 시간">
+          {TIMING_TARGETS.map((t) => (
+            <button key={t} role="radio" aria-checked={t === tab.target} className={t === tab.target ? 'on' : ''} onClick={() => set({ target: t })}>
+              {t}초
+            </button>
+          ))}
+        </div>
+      )}
+      <LiveBoard key={key} game={shown} boardKey={key} limit={5} title={`${shown.title} TOP 5`} />
+    </section>
   );
 }
 
@@ -89,6 +139,11 @@ export default function Hub({ onPlay }) {
           <Card key={g.id} g={g} player={player} onPlay={onPlay} />
         ))}
       </section>
+
+      <h2 className="section-title">
+        실시간 랭킹 <small>20초마다 새로 고쳐져요. 낮을수록 좋아요.</small>
+      </h2>
+      <Rankings />
 
       <h2 className="section-title">
         전후 비교 실험실 <small>무언가를 하기 전과 후, 내 반응은 달라질까?</small>

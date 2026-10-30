@@ -238,3 +238,28 @@ button { font: inherit; color: inherit; }
 .mid.warm { background: var(--bg2); }
 .tap-pad { width: min(72vw, 280px); aspect-ratio: 1; border-radius: 28px; border: 0; background: var(--orange); color: #1d0f05; font-size: 26px; font-weight: 700; cursor: pointer; touch-action: manipulation; box-shadow: 0 6px 0 #a3501a; }
 .tap-pad:active { transform: translateY(4px); box-shadow: 0 2px 0 #a3501a; }
+
+/* ---------- 실시간 랭킹 ---------- */
+.rankings { display: flex; flex-direction: column; gap: 10px; }
+.tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: 0 0 auto; border: 1.5px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.tabs button.on { border-color: var(--hue); color: var(--hue); background: color-mix(in srgb, var(--hue) 16%, var(--surface)); }
+.seg.small button { padding: 9px 0; font-size: 14px; }
+.live-board { border-top: 3px solid var(--hue); }
+.lb-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.lb-head h2 { margin: 0; }
+.lb-live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.lb-live .dot { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--ok) 0%, transparent); } }
+.live-board ol { margin-bottom: 4px; }
+.live-board li:last-child { border-bottom: 0; }
+.live-board li.gap { border-top: 1px dashed var(--line); }
+.live-board li.fresh { animation: fresh 3s ease-out; }
+@keyframes fresh { 0% { background: color-mix(in srgb, var(--hue) 35%, transparent); } 100% { background: transparent; } }
+.live-board .skeleton li { opacity: 0.35; }
+.live-board .muted, .live-board .fine { margin: 6px 0 0; }
+.live-board.compact li { padding: 6px 0; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .lb-live .dot, .live-board li.fresh { animation: none; } }
+.new-tag { margin-left: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: #15121f; background: var(--hue); padding: 2px 6px; border-radius: 6px; vertical-align: 2px; animation: fade-out 3s ease-in forwards; }
+@keyframes fade-out { 70% { opacity: 1; } 100% { opacity: 0; } }
