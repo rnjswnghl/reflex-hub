@@ -182,13 +182,13 @@ export function createRunner({ stage, cueFrame, target, feedback }) {
     if (trial.isCatch) {
       if (r) {
         row.status = early ? 'anticipation' : 'catch_fa';
-        setFeedback('원이 없을 땐 누르지 마세요', 'warn');
+        setFeedback('함정! 원이 안 나올 때도 있어요', 'warn');
       } else {
         row.status = 'catch_ok';
       }
     } else if (early) {
       row.status = 'anticipation';
-      setFeedback('너무 일러요 — 원이 나온 뒤에 눌러 주세요', 'warn');
+      setFeedback('너무 빨라요! 노란 원이 뜨면 누르세요', 'warn');
     } else if (r) {
       row.status = 'ok';
       row.rt_ms = round(r.t - targetOnset);

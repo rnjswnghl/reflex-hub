@@ -1,60 +1,108 @@
 {
   "what": "system check with in-browser robot (NOT participant data)",
   "robot_delay_ms": 250,
-  "app_version": "1.1.0",
+  "app_version": "2.0.0",
   "est_frame_ms": 16.7,
-  "rows": 54,
-  "rows_main": 46,
-  "status_counts": {
-    "ok": 45,
-    "anticipation": 1,
-    "catch_ok": 8
+  "round1": {
+    "rows": 18,
+    "rows_practice": 4,
+    "rows_main": 14,
+    "catch_rows": 4,
+    "status_counts": {
+      "ok": 14,
+      "anticipation": 1,
+      "catch_ok": 3
+    },
+    "paired_foreperiods": true,
+    "cue_target_actual_ms": {
+      "min": 498.1,
+      "median": 500,
+      "max": 500.1
+    },
+    "cue_on_actual_ms": {
+      "min": 98.1,
+      "median": 100,
+      "max": 100.1
+    },
+    "recorded_rt_ms": {
+      "min": 250.2,
+      "median": 250.3,
+      "max": 250.6
+    },
+    "time_source": [
+      "event"
+    ]
   },
-  "catch_rows": 8,
-  "cue_on_actual_ms": {
-    "min": 97.9,
-    "median": 100,
-    "max": 100.8
+  "round2": {
+    "rows": 14,
+    "rows_practice": 0,
+    "rows_main": 14,
+    "catch_rows": 2,
+    "status_counts": {
+      "ok": 12,
+      "catch_ok": 2
+    },
+    "paired_foreperiods": true,
+    "cue_target_actual_ms": {
+      "min": 499.9,
+      "median": 500.05,
+      "max": 500.6
+    },
+    "cue_on_actual_ms": {
+      "min": 99.9,
+      "median": 100,
+      "max": 100.2
+    },
+    "recorded_rt_ms": {
+      "min": 250.1,
+      "median": 250.3,
+      "max": 250.4
+    },
+    "time_source": [
+      "event"
+    ]
   },
-  "server_saw_meta": {
-    "pilot": false,
-    "saw_cue": "yes",
-    "repeat_participation": false,
-    "prior_start": false
+  "cue_flashes_observed": 16,
+  "cue_trials": 16,
+  "start_calls": 2,
+  "meta": {
+    "round_index": [
+      1,
+      2
+    ],
+    "tutorial": [
+      true,
+      false
+    ],
+    "saw_cue": [
+      "yes",
+      null
+    ],
+    "pilot": [
+      false,
+      false
+    ]
   },
-  "anticipation_rows": [
-    {
-      "trial_index": 1,
-      "condition": "nocue",
-      "rt_ms": null,
-      "cue_target_actual_ms": null
-    }
-  ],
-  "cue_trials": 27,
-  "cue_flashes_observed": 27,
-  "cue_target_actual_ms": {
-    "min": 497.5,
-    "median": 500,
-    "max": 514.7
+  "scores": {
+    "client_best_saved": 250,
+    "recomputed": [
+      250,
+      250
+    ]
   },
-  "recorded_rt_ms": {
-    "min": 250.1,
-    "median": 250.3,
-    "max": 250.5
-  },
-  "time_source": [
-    "event"
-  ],
   "checks": {
-    "row count = 8 practice + 46 main (catch 2+6)": true,
-    "robot never pressed on catch trials -> all non-early catch rows are catch_ok": true,
-    "paired foreperiods: same set in both conditions": true,
-    "manipulation-check answer stored": true,
-    "one early press -> one anticipation row without RT": true,
+    "round 1 = 4 practice + 14 main (catch 2+2)": true,
+    "round 2 = 14 main, no practice (catch 2)": true,
+    "one early press in round 1 -> one anticipation without RT": true,
+    "robot never pressed on catch -> catch_ok only": true,
+    "paired foreperiods in both rounds": true,
     "every cue trial flashed (except the early one)": true,
     "cue->target within 500±20 ms": true,
+    "cue on-duration within 100 -8..+40 ms": true,
     "recorded RT within robot delay +0..40 ms": true,
-    "cue on-duration within 100 -8..+40 ms (frame-scheduled off)": true
-  },
-  "note": "2026-10-30 v1.1.0. 점등 시간 판정 기준을 실행 후 98→92 ms로 고침(설계상 반 프레임 일찍 소등 가능; 측정값 97.9–100.8 ms는 그대로). 이 점검은 기록 로직의 내부 일관성만 확인하며 화면 표시·입력 장치 지연은 포함하지 않는다."
+    "start reported once per round, same round ids": true,
+    "same player across rounds, round_index 1 -> 2, tutorial only first": true,
+    "manipulation check asked only after first round": true,
+    "client best score = min of server-formula scores": true
+  }
 }

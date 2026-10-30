@@ -7,9 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/experiment/*.test.js"
+    "test": "node --test src/games/**/*.test.js api/*.test.js"
   },
   "dependencies": {
+    "@vercel/analytics": "1.5.0",
     "@vercel/blob": "^1.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

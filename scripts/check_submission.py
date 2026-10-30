@@ -14,7 +14,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / 'paper'
-TRIALS_PER_SESSION = 54  # 연습 8 + 본 46 (web/src/experiment/config.js ROWS_PER_SESSION)
+ROWS_MAIN, ROWS_TUTORIAL = 14, 4  # 한 판 본 블록 14행, 첫 판에만 연습 4행 (web/src/games/reaction/config.js)
 PLACEHOLDER = re.compile(r'\\TODO\{|\[대기\]|TODO:|TBD|XXX|lorem', re.I)
 problems, notes = [], []
 
@@ -30,28 +30,29 @@ def strip_comments(text):
 # --- 원자료 (C25, C26, C47) ---------------------------------------------------------
 sessions_dir = ROOT / 'data/raw/sessions'
 jsons = sorted(sessions_dir.rglob('*.json')) if sessions_dir.exists() else []
-need(len(jsons) > 0, f'원자료 세션 파일 존재 ({len(jsons)}개)')
+need(len(jsons) > 0, f'원자료 판 파일 존재 ({len(jsons)}개)')
 sim_files, pilot_files = [], []
 for j in jsons:
     meta = json.loads(j.read_text(encoding='utf-8')).get('meta', {})
-    if str(meta.get('session_id', '')).startswith('SIM'):
+    if str(meta.get('player_id', '')).startswith('SIM'):
         sim_files.append(j.name)
     if meta.get('pilot') is True:
         pilot_files.append(j.name)
-need(not sim_files, '원자료 폴더에 가상(SIM) 세션 파일 없음' + (f' → {sim_files[:3]}' if sim_files else ''))
-need(not pilot_files, '원자료 폴더에 연구자 파일럿 세션 없음' + (f' → {pilot_files[:3]}' if pilot_files else ''))
+need(not sim_files, '원자료 폴더에 가상(SIM) 판 파일 없음' + (f' → {sim_files[:3]}' if sim_files else ''))
+need(not pilot_files, '원자료 폴더에 연구자 파일럿 판 없음' + (f' → {pilot_files[:3]}' if pilot_files else ''))
 
-trials_csv, sessions_csv = ROOT / 'data/raw/trials.csv', ROOT / 'data/raw/sessions.csv'
-need(trials_csv.exists() and sessions_csv.exists(), 'data/raw/trials.csv, sessions.csv 존재')
-if trials_csv.exists() and sessions_csv.exists():
-    t, s = pd.read_csv(trials_csv), pd.read_csv(sessions_csv)
-    need(not s['session_id'].astype(str).str.startswith('SIM').any(), 'sessions.csv에 가상(SIM) 데이터 없음')
-    per = t.groupby('session_id').size()
-    need(len(per) == len(s), f'세션 수 일치: trials.csv {len(per)} / sessions.csv {len(s)}')
-    bad = per[per != TRIALS_PER_SESSION]
-    need(bad.empty, f'모든 세션이 설계대로 {TRIALS_PER_SESSION}행 (원자료 건수 = 설계, C26)'
-         + (f' → 어긋난 세션 {len(bad)}개' if len(bad) else ''))
-    need(len(t) == TRIALS_PER_SESSION * len(s), f'trials.csv 행 수 {len(t)} = {TRIALS_PER_SESSION} × {len(s)}')
+trials_csv, rounds_csv = ROOT / 'data/raw/trials.csv', ROOT / 'data/raw/rounds.csv'
+need(trials_csv.exists() and rounds_csv.exists(), 'data/raw/trials.csv, rounds.csv 존재')
+if trials_csv.exists() and rounds_csv.exists():
+    t, r = pd.read_csv(trials_csv), pd.read_csv(rounds_csv)
+    need(not r['player_id'].astype(str).str.startswith('SIM').any(), 'rounds.csv에 가상(SIM) 데이터 없음')
+    per = t.groupby('round_id').size()
+    need(len(per) == len(r), f'판 수 일치: trials.csv {len(per)} / rounds.csv {len(r)}')
+    expect = r.set_index('round_id')['tutorial'].astype(str).str.lower().eq('true').map({True: ROWS_MAIN + ROWS_TUTORIAL, False: ROWS_MAIN})
+    bad = (per - expect.reindex(per.index)).ne(0)
+    need(not bad.any(), f'모든 판이 설계대로 {ROWS_MAIN}행(첫 판 +{ROWS_TUTORIAL}) (원자료 건수 = 설계, C26)'
+         + (f' → 어긋난 판 {int(bad.sum())}개' if bad.any() else ''))
+    notes.append(f'INFO  판 {len(r)}개, 참가자 {r["player_id"].nunique()}명')
 
 # --- 분석 결과와 논문 수치 (C31, C40) ----------------------------------------------
 res_path = ROOT / 'analysis/output/results.json'
@@ -145,7 +146,7 @@ if gen.exists():
 # --- 필수 문서 (C21, C28, C46, C49) -----------------------------------------------
 for rel in ['docs/01-hypothesis.md', 'docs/02-literature.md', 'docs/03-design.md', 'docs/04-preregistration.md',
             'docs/05-results-notes.md', 'docs/06-ai-and-me.md', 'docs/CHECKLIST.md', 'docs/evidence/preregistration-commit.md', 'docs/review/2026-10-30-review.md',
-            'REPRODUCE.md', 'analysis/run_analysis.py', 'analysis/build_dataset.py', 'web/src/experiment/runner.js']:
+            'REPRODUCE.md', 'analysis/run_analysis.py', 'analysis/build_dataset.py', 'web/src/games/reaction/runner.js']:
     need((ROOT / rel).exists(), f'{rel} 존재')
 
 print('\n'.join(notes + problems))

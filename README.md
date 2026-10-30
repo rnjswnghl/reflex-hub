@@ -6,7 +6,9 @@ ALEPH 과제 10 "AI와 함께 쓰는 첫 논문"의 저장소입니다. 웹 반�
 
 ## 실험 참여
 
-- 실험 페이지: https://reflex-hub.vercel.app (약 4분, 로그인 없음, 휴대폰·PC 모두 가능)
+- 미니게임: https://reflex-hub.vercel.app (번개 반사·컬러 함정·1→16·딱 1초, 한 판 15~40초, 로그인 없음)
+  - 연구 데이터는 '번개 반사'에서만 나온다. 나머지 게임 점수는 순위표에만 쓴다.
+- 수집 현황: https://reflex-hub.vercel.app/stats.html (오늘 시작·완료, 지금 진행 중, 완료율 — 숫자만, 30초 갱신)
 
 ## 진행 상황
 
@@ -14,14 +16,14 @@ ALEPH 과제 10 "AI와 함께 쓰는 첫 논문"의 저장소입니다. 웹 반�
 |---|---|---|
 | 1. 질문을 가설로 | 완료 | [docs/01-hypothesis.md](docs/01-hypothesis.md) |
 | 2. 논거 세우기 | 완료 (문헌 10편, 2회 검증) | [docs/02-literature.md](docs/02-literature.md) |
-| 3. 실험 설계와 실행 | 설계·점검·독립 검토 완료(앱 1.1.0, 사전 등록 v2), **데이터 수집 대기** | [docs/03-design.md](docs/03-design.md), [사전 등록](docs/04-preregistration.md), [검토](docs/review/2026-10-30-review.md) |
+| 3. 실험 설계와 실행 | 설계·점검·독립 검토 완료(앱 2.0.0, 사전 등록 v3), **데이터 수집 대기** | [docs/03-design.md](docs/03-design.md), [사전 등록](docs/04-preregistration.md), [검토](docs/review/2026-10-30-review.md) |
 | 4. 결과 해석 | 수집 후 | [docs/05-results-notes.md](docs/05-results-notes.md) |
 | 5. 논문으로 묶기 | 원고 초안 완료, 결과 절 대기 | [paper/](paper/), [CHECKLIST](docs/CHECKLIST.md) |
 
 ## 구조
 
 ```
-web/        실험 페이지 (React + Vite) + 수집 API (Vercel Blob)
+web/        미니게임 허브 (React + Vite) + API: 판 저장·점수·순위표·현황 (Vercel Blob)
 analysis/   원자료 정리·사전 등록 분석·그림 생성 (Python)
 paper/      논문 (XeLaTeX). 수치는 분석 스크립트가 만든 매크로로만 들어감
 docs/       단계별 기록, 문헌 검증, 사전 등록, AI와 나의 판단, 통과 기준 대응표

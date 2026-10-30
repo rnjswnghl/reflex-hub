@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#16181d" />
+  <title>Reflex Hub 수집 현황</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#16181d; --surface:#1f2228; --line:#2d3139; --text:#eceae4; --muted:#9a9890; --accent:#d9b77a; --ok:#8fc7a3; --warn:#e6a07a; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:'Noto Sans KR',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    main { max-width: 720px; margin: 0 auto; padding: 28px 16px 48px; display:flex; flex-direction:column; gap:20px; }
+    header { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    h1 { margin:0; font-size:22px; letter-spacing:-0.01em; }
+    .meta { color:var(--muted); font-size:13px; }
+    .tiles { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap:10px; }
+    .tile { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:6px; }
+    .tile .label { color:var(--muted); font-size:13px; }
+    .tile .num { font-family:'JetBrains Mono',monospace; font-size:30px; font-variant-numeric: tabular-nums; }
+    .tile .sub { color:var(--muted); font-size:12px; }
+    .tile.live .num { color:var(--accent); }
+    .bar { height:8px; background:var(--line); border-radius:999px; overflow:hidden; }
+    .bar > div { height:100%; background:var(--ok); width:0; transition:width .4s; }
+    section { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    h2 { margin:0 0 10px; font-size:15px; font-weight:500; }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    th, td { text-align:right; padding:7px 4px; border-bottom:1px solid var(--line); font-variant-numeric: tabular-nums; }
+    th:first-child, td:first-child { text-align:left; }
+    th { color:var(--muted); font-weight:400; }
+    .note { color:var(--muted); font-size:13px; line-height:1.7; margin:0; }
+    .note a { color:var(--accent); }
+    .err { color:var(--warn); }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>수집 현황</h1>
+    <span class="meta" id="meta">불러오는 중…</span>
+  </header>
+
+  <div class="tiles">
+    <div class="tile live"><span class="label">지금 플레이 중</span><span class="num" id="live">–</span><span class="sub">최근 5분 판 종료 · 3분 내 시작</span></div>
+    <div class="tile"><span class="label">오늘 플레이</span><span class="num" id="todayPlays">–</span><span class="sub" id="todaySub">모든 게임, 한국 시간</span></div>
+    <div class="tile"><span class="label">연구 참가자 / 목표 20</span><span class="num" id="players">–</span><div class="bar"><div id="goal"></div></div><span class="sub">번개 반사를 1판 이상 끝낸 사람</span></div>
+    <div class="tile"><span class="label">번개 반사 판 수</span><span class="num" id="rounds">–</span><span class="sub" id="roundsSub">–</span></div>
+    <div class="tile"><span class="label">완료율</span><span class="num" id="rate">–</span><span class="sub" id="rateSub">시작한 판 중 끝까지 한 비율</span></div>
+  </div>
+
+  <section>
+    <h2>날짜별 (번개 반사)</h2>
+    <table>
+      <thead><tr><th>날짜(KST)</th><th>시작</th><th>완료 판</th><th>참가자</th></tr></thead>
+      <tbody id="days"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>읽는 법</h2>
+    <p class="note">
+      분석 제외 규칙(유효 시행 부족 등)을 적용하기 전의 단순 건수입니다. 사전 등록에 따라 수집 중에는 이 숫자만 보고 반응시간은 보지 않습니다.
+      '지금 플레이 중'은 실시간 접속자가 아니라 최근 기록으로 추정한 값입니다.
+      <b>방문자 수</b>(페이지를 열기만 한 사람 포함)는 Vercel 대시보드의 Analytics 탭에서 확인합니다.
+      파일럿(<code>?pilot=1</code>) 기록은 위 숫자에 들어가지 않습니다: <span id="pilot">–</span>
+    </p>
+  </section>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const pct = (x) => (x == null ? '–' : Math.round(x * 100) + '%');
+  async function load() {
+    try {
+      const r = await fetch('/api/stats', { cache: 'no-store' });
+      const s = await r.json();
+      if (!s.ok) throw new Error(s.error);
+      const x = s.reaction;
+      $('live').textContent = s.active_now;
+      $('todayPlays').textContent = s.today_plays;
+      $('todaySub').textContent = `오늘 플레이어 ${s.today_players}명 · 모든 게임`;
+      $('players').textContent = x.players;
+      $('goal').style.width = Math.min(100, (x.players / 20) * 100) + '%';
+      $('rounds').textContent = x.rounds;
+      $('roundsSub').textContent = x.players ? `1인당 평균 ${(x.rounds / x.players).toFixed(1)}판` : '–';
+      $('rate').textContent = pct(x.completion_rate);
+      $('rateSub').textContent = `시작 ${x.started} 중 완료 ${x.completed_of_started}`;
+      $('days').innerHTML = s.by_day.length
+        ? s.by_day.slice().reverse().map((d) => `<tr><td>${d.day}</td><td>${d.started}</td><td>${d.reaction_rounds}</td><td>${d.reaction_players}</td></tr>`).join('')
+        : '<tr><td colspan="4" style="text-align:left;color:var(--muted)">아직 기록이 없습니다</td></tr>';
+      $('pilot').textContent = `번개 반사 ${s.pilot.reaction.rounds}판, 다른 게임 포함 오늘 ${s.pilot.today_plays}판`;
+      const t = new Date(s.generated_at);
+      $('meta').textContent = `${t.toLocaleTimeString('ko-KR')} 기준 · 30초마다 갱신`;
+    } catch (e) {
+      $('meta').innerHTML = '<span class="err">불러오기 실패 — 잠시 뒤 다시 시도합니다</span>';
+    }
+  }
+  load();
+  setInterval(load, 30000);
+</script>
+</body>
+</html>

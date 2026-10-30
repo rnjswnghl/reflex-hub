@@ -5,7 +5,7 @@
 \begin{enumerate}
 \item 환경: Python 3.10 이상, \texttt{pip install -r analysis/requirements.txt}(버전 고정). 논문 빌드에는 XeLaTeX이 필요하다.
 \item 원자료 정리: \texttt{python3 analysis/build\_dataset.py}\\
-\texttt{data/raw/sessions/*.json} $\to$ \texttt{data/raw/trials.csv}, \texttt{sessions.csv}
+\texttt{data/raw/sessions/**/*.json} $\to$ \texttt{data/raw/trials.csv}, \texttt{rounds.csv}, \texttt{funnel.csv}
 \item 사전 등록한 분석: \texttt{python3 analysis/run\_analysis.py}\\
 $\to$ \texttt{analysis/output/results.json}, 논문 수치 매크로, 그림
 \item 논문 빌드: \texttt{bash scripts/build\_paper.sh}
@@ -17,6 +17,8 @@ $\to$ \texttt{analysis/output/results.json}, 논문 수치 매크로, 그림
 역할 구분은 재현 패키지의 \texttt{docs/06-ai-and-me.md}에 기록했고, 요약은 다음과 같다.
 
 \textbf{연구자가 판단한 일.} 여러 후보 가운데 직접 만든 웹 페이지로 행동 데이터를 모으는 ``시각 효과·경고 유무'' 실험을 주제로 골랐다.
+실험을 4분짜리 한 세션이 아니라 짧은 미니게임 여러 개와 순위표가 있는 형식으로 바꾸게 했고, 대기 표시가 목표와 헷갈린다는 문제를 직접 찾았다.
+AI가 거절한 중도 이탈률 수집을 다시 넣게 했다.
 결과물을 공개 저장소에 남기기로 했고, 링크 공유와 수집을 운영했다.
 AI 검토단의 지적을 받아들일지와 결과의 해석·결론은 연구자가 정했다.
 

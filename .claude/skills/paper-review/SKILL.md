@@ -19,7 +19,7 @@ description: Use when the reflex-hub paper draft (or its results/discussion) nee
 1. `bash scripts/build_paper.sh`로 최신 PDF를 만든다.
 2. **한 메시지에서** 아래 검토자 4명을 `Agent`(subagent_type: general-purpose)로 동시에 띄운다. 각 프롬프트에는 다음을 넣는다.
    - 레포 경로 `/home/claude/reflex-hub`
-   - 읽을 파일: `paper/sections/*.tex`, `paper/generated/results.tex`(있으면), `docs/01~04`, `analysis/run_analysis.py`, `web/src/experiment/*.js`
+   - 읽을 파일: `paper/sections/*.tex`, `paper/generated/results.tex`(있으면), `docs/01~04`, `analysis/run_analysis.py`, `web/src/games/reaction/*.js`, `web/api/*.js`
    - 역할 설명과 출력 형식
    - "파일을 수정하지 말고 보고서만 돌려줄 것"
 

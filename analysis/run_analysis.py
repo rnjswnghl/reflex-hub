@@ -1,17 +1,18 @@
 """사전 등록한 분석(docs/04-preregistration.md)을 그대로 실행한다.
 
-입력:  data/raw/trials.csv, data/raw/sessions.csv  (build_dataset.py가 만든 원자료)
+입력:  data/raw/trials.csv, data/raw/rounds.csv, data/raw/funnel.csv  (build_dataset.py가 만든 원자료)
        analysis/collection_window.json            (링크 공유일 D0에 기록하는 수집 기간)
 출력:  analysis/output/results.json        모든 수치
-       analysis/output/participants.csv    참가자별 조건 중앙값과 차이
-       analysis/output/exclusions.csv      참가자 제외 사유 기록
+       analysis/output/participants.csv    참가자(브라우저)별 조건 중앙값과 차이
+       analysis/output/exclusions.csv      판·참가자 제외 사유 기록
        paper/generated/results.tex         논문 본문이 \\input 하는 수치 매크로
        paper/generated/table_desc.tex      기술통계 표
        paper/figures/fig_paired.pdf, fig_diff.pdf
 
 이 파일의 PREREG 상수, is_valid(), apply_exclusions(), confirmatory()는 데이터 수집 전에 고정했다.
 고쳐야 하면 고친 날짜·이유를 docs/03-design.md '설계 변경 기록'에 남기고, 고치기 전 결과도 함께 보고한다.
-버전 이력: v1(커밋 5e0c825) → v2(2026-10-30, 수집 전, 독립 검토 반영: HL 판정·유효 시행 명시·수집 기간·캐치 시행)
+버전 이력: v1(커밋 5e0c825) → v2(커밋 8af2879, 독립 검토 반영) → v3(2026-10-30, 수집 전, 미니게임 허브:
+          약 40초짜리 판을 여러 번 할 수 있으므로 분석 단위를 '판'이 아니라 '참가자(브라우저)'로, 판을 합쳐 쓴다)
 """
 import argparse
 import json
@@ -26,13 +27,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # ---- 사전 등록 상수: 수집 전에 고정 ------------------------------------------------
 PREREG = {
-    'version': 2,
-    'main_rows_per_participant': 46,     # 본 블록: 목표 40(조건별 20) + 캐치 6(조건별 3)
-    'main_target_per_condition': 20,
+    'version': 3,
+    'main_rows_per_round': 14,           # 한 판 본 블록: 목표 12(조건별 6) + 캐치 2(조건별 1)
+    'main_target_per_condition_per_round': 6,
     'rt_min_ms': 100,                    # 이보다 빠른 반응은 자극을 보고 낸 반응으로 보기 어려움
     'rt_max_ms': 1500,                   # 반응 창
-    'min_valid_total': 30,               # 목표 시행 40회 중 유효 30회 미만이면 참가자 제외
-    'min_valid_per_condition': 10,
+    'min_valid_total': 10,               # 참가자의 모든 판을 합쳐 유효 목표 시행이 10회 미만이면 제외
+    'min_valid_per_condition': 5,        # 어느 한 조건이라도 5회 미만이면 제외 (→ 깨끗한 한 판이면 포함 가능)
+    'sensitivity_min_per_condition': 10, # 민감도 분석: 조건별 10회 이상(대개 2판 이상) 참가자만
     'alpha': 0.05,
     'sensitivity_rt_min_ms': 150,        # 민감도 분석: 하한을 올려 '시간 맞춰 누르기'를 더 걸러도 결론이 같은가
     'sensitivity_trim': 0.10,            # 민감도 분석: 참가자별 10% 절사평균
@@ -85,44 +87,46 @@ def trial_reason(main: pd.DataFrame, rt_min: float) -> pd.Series:
     return pd.Series(reason, index=main.index)
 
 
-def apply_exclusions(trials: pd.DataFrame, sessions: pd.DataFrame, window, rt_min=None):
+def apply_exclusions(trials: pd.DataFrame, rounds: pd.DataFrame, window, rt_min=None, min_per_cond=None,
+                     first_round_only=False):
+    """판 단위 제외(파일럿 → 수집 기간 밖 → 미완료) 뒤, 참가자(브라우저) 단위로 판을 합쳐 유효 시행 수를 본다."""
     P = PREREG
     rt_min = P['rt_min_ms'] if rt_min is None else rt_min
+    min_per_cond = P['min_valid_per_condition'] if min_per_cond is None else min_per_cond
     log = []
     main = trials[trials['block'] == 'main'].copy()
 
-    # 참가자 단위 1차 (순서대로 하나만 기록): 파일럿 → 수집 기간 밖 → 재참여 → 미완료
     keep = []
-    for _, s in sessions.iterrows():
-        sid = s['session_id']
-        n_main = int((main['session_id'] == sid).sum())
-        fin = pd.to_datetime(s.get('finished_at'), utc=True, errors='coerce')
-        if truthy(s.get('pilot')):
-            log.append({'session_id': sid, 'reason': 'pilot', 'detail': ''})
+    for _, r in rounds.iterrows():
+        rid = r['round_id']
+        n_main = int((main['round_id'] == rid).sum())
+        fin = pd.to_datetime(r.get('finished_at'), utc=True, errors='coerce')
+        if truthy(r.get('pilot')):
+            log.append({'unit': 'round', 'id': rid, 'reason': 'pilot', 'detail': ''})
         elif window and (pd.isna(fin) or not (window['start'] <= fin <= window['end'])):
-            log.append({'session_id': sid, 'reason': 'outside_window', 'detail': str(fin)})
-        elif truthy(s.get('repeat_participation')):
-            log.append({'session_id': sid, 'reason': 'repeat_participation', 'detail': ''})
-        elif n_main != P['main_rows_per_participant']:
-            log.append({'session_id': sid, 'reason': 'incomplete', 'detail': f'main_rows={n_main}'})
+            log.append({'unit': 'round', 'id': rid, 'reason': 'outside_window', 'detail': str(fin)})
+        elif n_main != P['main_rows_per_round']:
+            log.append({'unit': 'round', 'id': rid, 'reason': 'incomplete', 'detail': f'main_rows={n_main}'})
         else:
-            keep.append(sid)
-    main = main[main['session_id'].isin(keep)].copy()
+            keep.append(rid)
+    if first_round_only:  # 민감도 분석: 참가자마다 남은 판 중 가장 먼저 시작한 판 하나
+        kept = rounds[rounds['round_id'].isin(keep)].sort_values('started_at')
+        keep = kept.groupby('player_id').head(1)['round_id'].tolist()
+    main = main[main['round_id'].isin(keep)].copy()
     main['rt_ms'] = pd.to_numeric(main['rt_ms'], errors='coerce')
     main['valid'] = is_valid(main, rt_min)
     main['exclusion'] = trial_reason(main, rt_min)
 
-    # 참가자 단위 2차: 유효 시행 부족
     analyzed = []
-    for sid, g in main.groupby('session_id'):
+    for pid, g in main.groupby('player_id'):
         v = g[g['valid']]
         per = v['condition'].value_counts()
-        if len(v) < P['min_valid_total'] or min(per.get('cue', 0), per.get('nocue', 0)) < P['min_valid_per_condition']:
-            log.append({'session_id': sid, 'reason': 'too_few_valid_trials',
-                        'detail': f"valid={len(v)} cue={per.get('cue', 0)} nocue={per.get('nocue', 0)}"})
+        if len(v) < P['min_valid_total'] or min(per.get('cue', 0), per.get('nocue', 0)) < min_per_cond:
+            log.append({'unit': 'player', 'id': pid, 'reason': 'too_few_valid_trials',
+                        'detail': f"rounds={g['round_id'].nunique()} valid={len(v)} cue={per.get('cue', 0)} nocue={per.get('nocue', 0)}"})
         else:
-            analyzed.append(sid)
-    return main, analyzed, pd.DataFrame(log, columns=['session_id', 'reason', 'detail'])
+            analyzed.append(pid)
+    return main, analyzed, pd.DataFrame(log, columns=['unit', 'id', 'reason', 'detail'])
 
 
 # ---- 2. 참가자별 요약 ---------------------------------------------------------------
@@ -136,21 +140,23 @@ def main_input(g: pd.DataFrame) -> str:
 
 
 def per_participant(main: pd.DataFrame, analyzed, stat='median'):
-    v = main[main['valid'] & main['session_id'].isin(analyzed)]
-    agg = (lambda s: s.median()) if stat == 'median' else (lambda s: stats.trim_mean(s, PREREG['sensitivity_trim']))
+    v = main[main['valid'] & main['player_id'].isin(analyzed)]
+    agg = (lambda x: x.median()) if stat == 'median' else (lambda x: stats.trim_mean(x, PREREG['sensitivity_trim']))
     rows = []
-    for sid, g in v.groupby('session_id'):
+    for pid, g in v.groupby('player_id'):
         cue = g.loc[g['condition'] == 'cue', 'rt_ms']
         noc = g.loc[g['condition'] == 'nocue', 'rt_ms']
+        allp = main[main['player_id'] == pid]
         rows.append({
-            'session_id': sid,
+            'player_id': pid,
+            'n_rounds': allp['round_id'].nunique(),
             'median_cue': agg(cue),
             'median_nocue': agg(noc),
             'diff': agg(cue) - agg(noc),   # 음수 = 경고 신호가 있을 때 더 빠름
             'n_valid_cue': len(cue),
             'n_valid_nocue': len(noc),
-            'input_type': main_input(main[main['session_id'] == sid]),
-            'mixed_input': main[main['session_id'] == sid]['input_type'].dropna().nunique() > 1,
+            'input_type': main_input(allp),
+            'mixed_input': allp['input_type'].dropna().nunique() > 1,
         })
     return pd.DataFrame(rows)
 
@@ -233,7 +239,7 @@ def confirmatory(pp: pd.DataFrame):
         'group_median_nocue': float(pp['median_nocue'].median()),
         'valid_trial_imbalance_mean_abs': float((pp['n_valid_cue'] - pp['n_valid_nocue']).abs().mean()),
     })
-    # 판정 규칙(사전 등록 v2): 단측 Wilcoxon p < α 이고 Hodges–Lehmann 추정치 < 0 → 지지
+    # 판정 규칙(사전 등록 v2~v3): 단측 Wilcoxon p < α 이고 Hodges–Lehmann 추정치 < 0 → 지지
     out['supported'] = bool(out['wilcoxon_p_one_sided'] < P['alpha'] and out['hl_estimate'] < 0)
     return out
 
@@ -253,22 +259,26 @@ def min_detectable_dz(n, alpha=0.05, power=0.80):
 
 
 # ---- 4. 사전 등록한 보조 점검과 민감도 분석 ------------------------------------------
-def sensitivity(trials, sessions, window, analyzed_primary):
+def sensitivity(trials, rounds, window):
     out = {}
-    m150, a150, _ = apply_exclusions(trials, sessions, window, rt_min=PREREG['sensitivity_rt_min_ms'])
-    pp150 = per_participant(m150, a150)
-    c = confirmatory(pp150) if len(pp150) >= 2 else {'n': len(pp150)}
-    out['rt_floor_150'] = {k: c.get(k) for k in ('n', 'hl_estimate', 'wilcoxon_p_one_sided', 'supported')}
-    m, a, _ = apply_exclusions(trials, sessions, window)
-    ppt = per_participant(m, a, stat='trim')
-    c = confirmatory(ppt) if len(ppt) >= 2 else {'n': len(ppt)}
-    out['trimmed_mean_10'] = {k: c.get(k) for k in ('n', 'hl_estimate', 'wilcoxon_p_one_sided', 'supported')}
+    pick = ('n', 'hl_estimate', 'wilcoxon_p_one_sided', 'supported')
+    variants = {
+        'rt_floor_150': dict(rt_min=PREREG['sensitivity_rt_min_ms']),
+        'trimmed_mean_10': dict(),
+        'first_round_only': dict(first_round_only=True),
+        'min10_per_condition': dict(min_per_cond=PREREG['sensitivity_min_per_condition']),
+    }
+    for name, kw in variants.items():
+        m, a, _ = apply_exclusions(trials, rounds, window, **kw)
+        pp = per_participant(m, a, stat='trim' if name == 'trimmed_mean_10' else 'median')
+        c = confirmatory(pp) if len(pp) >= 2 else {'n': len(pp)}
+        out[name] = {k: c.get(k) for k in pick}
     return out
 
 
-def strategy_checks(main: pd.DataFrame, analyzed, sessions):
+def strategy_checks(main: pd.DataFrame, analyzed, rounds):
     """신호 조건에서 '원 대신 신호에 시간 맞춰 누르기'가 있었는지 보는 점검(사전 등록 §6)."""
-    m = main[main['session_id'].isin(analyzed)]
+    m = main[main['player_id'].isin(analyzed)]
     catch = m[m['is_catch'].map(truthy)]
     target = m[~m['is_catch'].map(truthy)]
     lo, hi = PREREG['fast_band_ms']
@@ -285,13 +295,12 @@ def strategy_checks(main: pd.DataFrame, analyzed, sessions):
             'fast_band_prop': float(((ok['rt_ms'] >= lo) & (ok['rt_ms'] < hi)).mean()) if len(ok) else None,
         }
     # 참가자별 오반응 수의 조건 차이 (신호 − 없음), 부호순위 검정 (양측)
-    fa = catch.assign(fa=catch['status'] == 'catch_fa').groupby(['session_id', 'condition'])['fa'].sum().unstack(fill_value=0)
+    fa = catch.assign(fa=catch['status'] == 'catch_fa').groupby(['player_id', 'condition'])['fa'].sum().unstack(fill_value=0)
     if len(fa) >= 2 and {'cue', 'nocue'} <= set(fa.columns):
         dfa = (fa['cue'] - fa['nocue']).to_numpy()
         res['catch_fa_diff_wilcoxon_p_two_sided'] = (
             float(stats.wilcoxon(dfa, zero_method='wilcox').pvalue) if (dfa != 0).sum() >= 1 else None)
-    s = sessions[sessions['session_id'].isin(analyzed)]
-    res['saw_cue'] = s['saw_cue'].fillna('none').value_counts().to_dict() if 'saw_cue' in s else {}
+    res['saw_cue'] = saw_by_player(rounds).reindex(analyzed).fillna('none').value_counts().to_dict()
     lag = m.loc[m['cue_target_actual_ms'].notna(), 'cue_target_actual_ms']
     res['cue_target_actual_ms'] = {'min': float(lag.min()), 'median': float(lag.median()), 'max': float(lag.max())} if len(lag) else {}
     on = m.loc[m['cue_on_actual_ms'].notna(), 'cue_on_actual_ms'] if 'cue_on_actual_ms' in m else pd.Series(dtype=float)
@@ -299,13 +308,36 @@ def strategy_checks(main: pd.DataFrame, analyzed, sessions):
     return res
 
 
+def completion(data: Path, rounds: pd.DataFrame, window):
+    """완료율(사전 등록 §6, 기술통계): 수집 기간에 시작한 세션 중 완료 세션이 서버에 도착한 비율.
+    시작 기록은 앱 1.2.0부터 있다. 제외 규칙 적용 전 건수다."""
+    path = data / 'funnel.csv'
+    if not path.exists():
+        return {'n_started': None, 'n_completed_of_started': None, 'rate': None}
+    f = pd.read_csv(path)
+    if f.empty:
+        return {'n_started': 0, 'n_completed_of_started': 0, 'rate': None}
+    t = pd.to_datetime(f['started_at'], utc=True, errors='coerce')
+    if window:
+        f = f[(t >= window['start']) & (t <= window['end'])]
+    done = set(rounds.loc[~rounds['pilot'].map(truthy), 'round_id'])
+    k = int(f['round_id'].isin(done).sum())
+    return {'n_started': int(len(f)), 'n_completed_of_started': k, 'rate': (k / len(f)) if len(f) else None}
+
+
 # ---- 5. 탐색 분석 (사전 등록한 확증 분석이 아님, 논문에 '탐색'으로 표시) -----------
-def exploratory(pp: pd.DataFrame, sessions):
+def saw_by_player(rounds: pd.DataFrame) -> pd.Series:
+    """조작 점검 응답: 참가자의 첫 판에서만 묻는다 → 참가자별로 비어 있지 않은 첫 답."""
+    r = rounds.sort_values('started_at')
+    return r.dropna(subset=['saw_cue']).groupby('player_id')['saw_cue'].first()
+
+
+def exploratory(pp: pd.DataFrame, rounds):
     by_input = pp.groupby('input_type')['diff'].agg(['count', 'median']).reset_index().to_dict(orient='records')
-    saw = sessions.set_index('session_id')['saw_cue'] if 'saw_cue' in sessions else pd.Series(dtype=object)
-    pp2 = pp.assign(saw=pp['session_id'].map(saw).fillna('none'))
+    pp2 = pp.assign(saw=pp['player_id'].map(saw_by_player(rounds)).fillna('none'))
     by_saw = pp2.groupby('saw')['diff'].agg(['count', 'median']).reset_index().to_dict(orient='records')
-    return {'diff_by_input_type': by_input, 'diff_by_saw_cue': by_saw,
+    by_rounds = pp.assign(k=np.minimum(pp['n_rounds'], 3)).groupby('k')['diff'].agg(['count', 'median']).reset_index().to_dict(orient='records')
+    return {'diff_by_input_type': by_input, 'diff_by_saw_cue': by_saw, 'diff_by_rounds_played_capped3': by_rounds,
             'mixed_input_participants': int(pp['mixed_input'].sum())}
 
 
@@ -333,10 +365,13 @@ def write_tex(res, path: Path, simulated: bool):
     ex = f['excluded_by_reason']
     mac = {
         'ResSimulated': '1' if simulated else '0',
+        'NplayersAll': f['players_all'], 'NRoundsAll': f['rounds_all'],
         'Nrecruited': f['recruited'], 'Nexcluded': f['recruited'] - f['analyzed'],
         'NexclPilot': ex.get('pilot', 0), 'NexclWindow': ex.get('outside_window', 0),
-        'NexclRepeat': ex.get('repeat_participation', 0), 'NexclIncomplete': ex.get('incomplete', 0),
+        'NexclIncomplete': ex.get('incomplete', 0),
         'NexclFewValid': ex.get('too_few_valid_trials', 0), 'Nanalyzed': f['analyzed'],
+        'NRoundsKept': f['rounds_of_analyzed'], 'RoundsMedian': fmt(f['rounds_per_player_median']),
+        'RoundsMax': f['rounds_per_player_max'], 'NOneRound': f['players_one_round'],
         'TrialsAnalyzed': f['target_trials_of_analyzed'], 'TrialsExcluded': f['target_trials_excluded'],
         'TrialsExcludedPct': fmt(f['target_trials_excluded_pct']),
         'CollectStart': f['collection_start'], 'CollectEnd': f['collection_end'],
@@ -357,6 +392,10 @@ def write_tex(res, path: Path, simulated: bool):
         'SensFloorHL': fmt(s['rt_floor_150'].get('hl_estimate')), 'SensFloorP': fmt_p(s['rt_floor_150'].get('wilcoxon_p_one_sided')),
         'SensFloorN': s['rt_floor_150'].get('n', '--'),
         'SensTrimHL': fmt(s['trimmed_mean_10'].get('hl_estimate')), 'SensTrimP': fmt_p(s['trimmed_mean_10'].get('wilcoxon_p_one_sided')),
+        'SensFirstHL': fmt(s['first_round_only'].get('hl_estimate')), 'SensFirstP': fmt_p(s['first_round_only'].get('wilcoxon_p_one_sided')),
+        'SensFirstN': s['first_round_only'].get('n', '--'),
+        'SensTenHL': fmt(s['min10_per_condition'].get('hl_estimate')), 'SensTenP': fmt_p(s['min10_per_condition'].get('wilcoxon_p_one_sided')),
+        'SensTenN': s['min10_per_condition'].get('n', '--'),
         'FAcue': sc['cue']['catch_false_alarms'], 'FAnocue': sc['nocue']['catch_false_alarms'],
         'FAcuePct': fmt_pct(sc['cue']['catch_fa_rate']), 'FAnocuePct': fmt_pct(sc['nocue']['catch_fa_rate']),
         'CatchPerCond': sc['cue']['catch_trials'],
@@ -366,7 +405,10 @@ def write_tex(res, path: Path, simulated: bool):
         'SawYes': sc['saw_cue'].get('yes', 0), 'SawNo': sc['saw_cue'].get('no', 0), 'SawUnsure': sc['saw_cue'].get('unsure', 0),
         'LagMin': fmt(sc['cue_target_actual_ms'].get('min')), 'LagMax': fmt(sc['cue_target_actual_ms'].get('max')),
         'CueOnMin': fmt(sc['cue_on_actual_ms'].get('min')), 'CueOnMax': fmt(sc['cue_on_actual_ms'].get('max')),
-        'TrialsPerCond': PREREG['main_target_per_condition'] * f['analyzed'],
+        'TrialsPerCond': f['target_trials_per_condition'],
+        'NStarted': '--' if res['completion']['n_started'] is None else res['completion']['n_started'],
+        'NCompletedOfStarted': '--' if res['completion']['n_completed_of_started'] is None else res['completion']['n_completed_of_started'],
+        'CompletionPct': fmt_pct(res['completion']['rate']),
         'ResVerdict': '지지되었다' if c.get('supported') else '지지되지 않았다',
         'ResSupported': '1' if c.get('supported') else '0',
     }
@@ -469,17 +511,20 @@ def main():
 
     data = Path(a.data)
     trials = pd.read_csv(data / 'trials.csv')
-    sessions = pd.read_csv(data / 'sessions.csv')
-    simulated = sessions['session_id'].astype(str).str.startswith('SIM').any()
+    rounds = pd.read_csv(data / 'rounds.csv')
+    simulated = rounds['player_id'].astype(str).str.startswith('SIM').any()
     if simulated and not a.allow_simulated:
         raise SystemExit('가상(SIM) 데이터가 섞여 있습니다. 실제 분석에는 쓸 수 없습니다.')
     window = load_window(Path(a.window), required=not simulated)
 
-    main_df, analyzed, excl = apply_exclusions(trials, sessions, window)
+    main_df, analyzed, excl = apply_exclusions(trials, rounds, window)
     pp = per_participant(main_df, analyzed)
-    tgt = main_df[main_df['session_id'].isin(analyzed) & ~main_df['is_catch'].map(truthy)]
-    fin = pd.to_datetime(sessions.loc[sessions['session_id'].isin(analyzed), 'finished_at'], utc=True)
+    tgt = main_df[main_df['player_id'].isin(analyzed) & ~main_df['is_catch'].map(truthy)]
+    real = rounds[~rounds['pilot'].map(truthy)]
+    fin = pd.to_datetime(rounds.loc[rounds['player_id'].isin(analyzed), 'finished_at'], utc=True)
     kst = fin.dt.tz_convert('Asia/Seoul') if len(fin) else fin
+    excl_counts = {**excl[excl['unit'] == 'round']['reason'].value_counts().to_dict(),
+                   **excl[excl['unit'] == 'player']['reason'].value_counts().to_dict()}
 
     res = {
         'generated_at': datetime.now().astimezone().isoformat(timespec='seconds'),
@@ -488,10 +533,17 @@ def main():
         'prereg': PREREG,
         'collection_window': window['raw'] if window else None,
         'flow': {
-            'recruited': int(len(sessions)),
+            'rounds_all': int(len(real)),
+            'players_all': int(real['player_id'].nunique()),
+            'recruited': int(main_df['player_id'].nunique()),   # 판 단위 제외 뒤 판이 하나라도 남은 참가자
             'analyzed': len(analyzed),
-            'excluded_by_reason': excl['reason'].value_counts().to_dict(),
+            'excluded_by_reason': excl_counts,
+            'rounds_of_analyzed': int(main_df.loc[main_df['player_id'].isin(analyzed), 'round_id'].nunique()),
+            'rounds_per_player_median': float(pp['n_rounds'].median()) if len(pp) else None,
+            'rounds_per_player_max': int(pp['n_rounds'].max()) if len(pp) else 0,
+            'players_one_round': int((pp['n_rounds'] == 1).sum()) if len(pp) else 0,
             'target_trials_of_analyzed': int(len(tgt)),
+            'target_trials_per_condition': int((tgt['condition'] == 'cue').sum()),
             'target_trials_excluded': int((~tgt['valid']).sum()),
             'target_trials_excluded_pct': float((~tgt['valid']).mean() * 100) if len(tgt) else None,
             'trial_exclusions_by_reason': tgt['exclusion'].value_counts().to_dict(),
@@ -502,9 +554,11 @@ def main():
         'confirmatory': confirmatory(pp) if len(pp) else {'n': 0, 'error': 'no participants', 'supported': False},
         'sensitivity_power': {'min_detectable_dz': min_detectable_dz(len(pp)),
                               'note': 'one-sided paired t, alpha .05, power .80 (주 검정인 Wilcoxon 기준이 아님)'},
-        'sensitivity': sensitivity(trials, sessions, window, analyzed) if len(pp) >= 2 else {'rt_floor_150': {}, 'trimmed_mean_10': {}},
-        'strategy': strategy_checks(main_df, analyzed, sessions),
-        'exploratory': exploratory(pp, sessions) if len(pp) else {},
+        'sensitivity': sensitivity(trials, rounds, window) if len(pp) >= 2 else
+        {k: {} for k in ('rt_floor_150', 'trimmed_mean_10', 'first_round_only', 'min10_per_condition')},
+        'strategy': strategy_checks(main_df, analyzed, rounds),
+        'completion': completion(data, rounds, window),
+        'exploratory': exploratory(pp, rounds) if len(pp) else {},
     }
 
     out = Path(a.out)

@@ -18,16 +18,17 @@
 ```bash
 python3 analysis/build_dataset.py
 ```
-- 입력: `data/raw/sessions/**/*.json` — 참가자 1명 = 파일 1개, 서버에 저장된 그대로
-- 출력: `data/raw/trials.csv` (시행 1개 = 1행), `data/raw/sessions.csv` (참가자 1명 = 1행)
-- 확인: `trials.csv` 행 수 = 54 × 세션 수 (연습 8 + 본 블록 46)
+- 입력: `data/raw/sessions/**/*.json` — '번개 반사' 한 판 = 파일 1개, 서버에 저장된 그대로
+- 출력: `data/raw/trials.csv` (시행 1개 = 1행), `data/raw/rounds.csv` (판 1개 = 1행, `player_id`로 참가자 구분)
+- 확인: 판마다 14행, 브라우저의 첫 판은 연습 포함 18행
+- 시작 기록: `data/raw/funnel/*.json` → `data/raw/funnel.csv` (완료율 계산용)
 
 ## 2. 사전 등록한 분석
 
 ```bash
 python3 analysis/run_analysis.py
 ```
-- 규칙: `docs/04-preregistration.md` v2 (데이터 수집 전에 고정, `docs/evidence/preregistration-commit.md`)
+- 규칙: `docs/04-preregistration.md` v3 (데이터 수집 전에 고정, `docs/evidence/preregistration-commit.md`)
 - 수집 기간: `analysis/collection_window.json` (없으면 분석이 실행되지 않음)
 - 출력: `analysis/output/results.json`(모든 수치), `participants.csv`, `exclusions.csv`,
   `paper/generated/*.tex`(논문 수치 매크로·표), `paper/figures/*.pdf`
@@ -43,9 +44,9 @@ bash scripts/build_paper.sh      # → paper/build/main.pdf
 
 | 무엇을 | 명령 | 기대 결과 |
 |---|---|---|
-| 실험 파라미터 | `cd web && npm install && npm test` | 3개 테스트 통과 |
+| 실험·서버 단위 시험 | `cd web && npm install && npm test` | 5개 테스트 통과 |
 | 분석 파이프라인 | `python3 analysis/tests/test_pipeline.py` | 단위 시험 통과, 효과를 심은 가상 데이터 → 지지, 효과 0 → 지지 안 됨, 가상 데이터는 기본 거부 |
-| 측정 도구 | `cd web && npm run build && python3 e2e/system_check.py` | 54행, 캐치 통과, 경고→목표 500±20 ms, 점등 100 −8/+40 ms, 로봇 RT 250 ms가 +0~40 ms 안에서 기록 |
+| 측정 도구 | `cd web && npm run build && python3 e2e/system_check.py` | 두 판(18행·14행), 캐치 통과, 경고→목표 500±20 ms, 점등 100 −8/+40 ms, 로봇 RT 250 ms가 +0~40 ms 안, 점검 13개 통과 |
 | 제출 점검 | `python3 scripts/check_submission.py` | "제출 가능" |
 
 ## 5. 실험 자체를 다시 돌리려면

@@ -1,4 +1,4 @@
-// Vercel Blob에 저장된 세션 JSON을 data/raw/sessions/ 로 내려받는다.
+// Vercel Blob에 저장된 세션 JSON을 data/raw/sessions/ 로, 시작 기록을 data/raw/funnel/ 로 내려받는다.
 // 이미 있는 파일은 덮어쓰지 않는다(원자료 불변). 내려받은 목록은 data/raw/pull-log.jsonl에 누적 기록한다.
 //
 // 실행: BLOB_READ_WRITE_TOKEN=... node scripts/pull_data.mjs
@@ -19,15 +19,19 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
   process.exit(1);
 }
 
-const outDir = join(ROOT, 'data/raw/sessions');
 const exists = (p) => access(p).then(() => true, () => false);
-let cursor;
+const TARGETS = [
+  { prefix: 'sessions/', dir: join(ROOT, 'data/raw/sessions') },     // 완료 세션 (반응 기록)
+  { prefix: 'funnel/start/', dir: join(ROOT, 'data/raw/funnel') },  // 시작 기록 (완료율 계산용)
+];
 let fetched = 0;
 let skipped = 0;
-do {
-  const page = await list({ prefix: 'sessions/', cursor, limit: 1000 });
+for (const { prefix, dir } of TARGETS) {
+ let cursor;
+ do {
+  const page = await list({ prefix, cursor, limit: 1000 });
   for (const b of page.blobs) {
-    const dest = join(outDir, b.pathname.replace(/^sessions\//, ''));
+    const dest = join(dir, b.pathname.slice(prefix.length));
     if (await exists(dest)) {
       skipped++;
       continue;
@@ -45,6 +49,7 @@ do {
     fetched++;
   }
   cursor = page.hasMore ? page.cursor : undefined;
-} while (cursor);
+ } while (cursor);
+}
 
-console.log(`new=${fetched} already_present=${skipped} → ${outDir}`);
+console.log(`new=${fetched} already_present=${skipped} → data/raw/sessions, data/raw/funnel`);
