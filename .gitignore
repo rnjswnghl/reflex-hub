@@ -1,0 +1,14 @@
+node_modules/
+web/dist/
+.vercel/
+.env*
+__pycache__/
+*.pyc
+.DS_Store
+
+# 논문 빌드 부산물 (PDF만 남긴다)
+paper/build/*
+!paper/build/main.pdf
+
+# 제출 ZIP은 scripts/package.sh로 언제든 다시 만든다
+submission/

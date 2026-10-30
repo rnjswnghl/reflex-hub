@@ -1,0 +1,23 @@
+\section{재현 방법}\label{app:repro}
+재현 패키지(ZIP)를 풀거나 \url{https://github.com/rnjswnghl/reflex-hub}를 받은 뒤 아래를 실행하면, 원자료에서 이 논문의 모든 수치와 그림이 다시 만들어진다.
+자세한 내용은 패키지의 \texttt{REPRODUCE.md}에 있다.
+
+\begin{enumerate}
+\item 환경: Python 3.10 이상, \texttt{pip install -r analysis/requirements.txt}. 논문 빌드에는 XeLaTeX이 필요하다.
+\item 원자료 정리: \texttt{python3 analysis/build\_dataset.py}\\
+\texttt{data/raw/sessions/*.json} $\to$ \texttt{data/raw/trials.csv}, \texttt{sessions.csv}
+\item 사전 등록한 분석: \texttt{python3 analysis/run\_analysis.py}\\
+$\to$ \texttt{analysis/output/results.json}, 논문 수치 매크로, 그림
+\item 논문 빌드: \texttt{bash scripts/build\_paper.sh}
+\item 실험 페이지 직접 실행: \texttt{cd web \&\& npm install \&\& npm run dev}
+\end{enumerate}
+
+\section{AI에게 맡긴 일과 직접 판단한 일}\label{app:ai}
+이 연구는 AI(Claude)와 함께 진행했다.
+역할 구분과 판단 근거는 재현 패키지의 \texttt{docs/06-ai-and-me.md}에 기록했고, 요약은 다음과 같다.
+AI는 가설 문장의 결함 지적, 실험 페이지와 분석 코드 작성, 문헌 후보 제시와 서지 대조, 원고 초안 작성을 맡았다.
+AI가 제시한 문헌은 모두 웹에서 직접 서지를 대조했고, 대조 과정에서 원문과 맞지 않는 연결 문장 1건을 고쳤다.
+분석 규칙은 데이터를 보기 전에 고정했으므로, AI도 연구자도 결과를 본 뒤 판정 기준을 바꿀 수 없었다.
+
+\section{문서 대응표}
+과제 통과 기준(T10-C01--C51)과 이 논문·패키지의 대응 위치는 \texttt{docs/CHECKLIST.md}에 있다.

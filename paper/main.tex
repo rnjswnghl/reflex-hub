@@ -1,0 +1,66 @@
+% 빌드: bash scripts/build_paper.sh  (XeLaTeX + BibTeX)
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\IfFontExistsTF{Noto Serif CJK KR}{%
+  % 한글에는 이탤릭이 없으므로 \emph는 고딕으로 표시한다
+  \setmainfont{Noto Serif CJK KR}[BoldFont={* Bold}, ItalicFont={Noto Sans CJK KR}, BoldItalicFont={Noto Sans CJK KR Bold}]
+  \setsansfont{Noto Sans CJK KR}[BoldFont={* Bold}]
+}{%
+  \IfFontExistsTF{AppleMyungjo}{\setmainfont{AppleMyungjo}\setsansfont{Apple SD Gothic Neo}}%
+  {\setmainfont{Batang}\setsansfont{Malgun Gothic}}%
+}
+\XeTeXlinebreaklocale "ko"
+\XeTeXlinebreakskip = 0pt plus 1pt
+
+\usepackage[margin=25mm]{geometry}
+\usepackage{setspace}\setstretch{1.35}
+\usepackage{graphicx,booktabs,amsmath,xcolor,caption}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+\renewcommand{\figurename}{그림}
+\renewcommand{\tablename}{표}
+\renewcommand{\refname}{참고문헌}
+\renewcommand{\abstractname}{초록}
+\renewcommand{\contentsname}{차례}
+\renewcommand{\appendixname}{부록}
+\setlength{\parindent}{1em}
+
+% 미완성 표시. scripts/check_submission.py는 이 표시가 남아 있으면 제출 묶기를 거부한다.
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+\input{meta}
+% 결과 수치는 analysis/run_analysis.py가 generated/results.tex로 만든다. 없으면 '대기' 값을 쓴다.
+\IfFileExists{generated/results.tex}{\input{generated/results}\def\ResPending{0}}{\input{pending}}
+\providecommand{\Pend}{\textcolor{red}{[대기]}}
+
+\title{\PaperTitle}
+\author{\PaperAuthor}
+\date{\PaperDate}
+
+\begin{document}
+\maketitle
+
+\ifnum\ResPending=1
+  \begin{center}\colorbox{red!10}{\parbox{0.9\linewidth}{\centering\color{red!70!black}
+  \TODO{데이터 수집 전 원고입니다. 결과 수치와 그림은 분석 실행 후 자동으로 채워집니다.}}}\end{center}
+\fi
+\ifnum\ResSimulated=1
+  \begin{center}\colorbox{red!10}{\parbox{0.9\linewidth}{\centering\color{red!70!black}\bfseries
+  \TODO{가상(SIMULATED) 데이터로 만든 점검용 빌드입니다. 제출 불가.}}}\end{center}
+\fi
+
+\input{sections/00-abstract}
+\input{sections/01-introduction}
+\input{sections/02-methods}
+\input{sections/03-results}
+\input{sections/04-discussion}
+
+\bibliographystyle{apalike}
+\bibliography{refs}
+
+\appendix
+\input{sections/05-appendix}
+
+\end{document}

@@ -1,0 +1,43 @@
+{
+  "what": "system check with in-browser robot (NOT participant data)",
+  "robot_delay_ms": 250,
+  "app_version": "1.0.0",
+  "est_frame_ms": 16.7,
+  "rows": 46,
+  "rows_main": 40,
+  "status_counts": {
+    "ok": 45,
+    "anticipation": 1,
+    "timeout": 0
+  },
+  "anticipation_rows": [
+    {
+      "trial_index": 0,
+      "condition": "cue",
+      "rt_ms": null,
+      "cue_target_actual_ms": null
+    }
+  ],
+  "cue_trials": 23,
+  "cue_flashes_observed": 23,
+  "cue_target_actual_ms": {
+    "min": 499.4,
+    "median": 500,
+    "max": 500.3
+  },
+  "recorded_rt_ms": {
+    "min": 250.2,
+    "median": 250.3,
+    "max": 250.5
+  },
+  "time_source": [
+    "event"
+  ],
+  "checks": {
+    "row count = 6 practice + 40 main": true,
+    "one early press -> one anticipation row without RT": true,
+    "every cue trial flashed (except the early one)": true,
+    "cue->target within 500±20 ms": true,
+    "recorded RT within robot delay +0..40 ms": true
+  }
+}

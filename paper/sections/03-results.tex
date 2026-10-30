@@ -1,0 +1,47 @@
+\section{결과}
+% 이 절의 수치는 모두 analysis/run_analysis.py가 만든 매크로다. 숫자를 손으로 고치지 않는다.
+
+\subsection{참가자와 시행}
+본 실험을 마친 세션은 \Nrecruited{}개였다.
+사전 등록한 기준으로 \Nexcluded{}개를 제외했다.
+사유는 재참여 \NexclRepeat{}개, 미완료 \NexclIncomplete{}개, 유효 시행 부족 \NexclFewValid{}개였다.
+남은 \Nanalyzed{}명의 본 시행 \TrialsAnalyzed{}회 중 \TrialsExcluded{}회(\TrialsExcludedPct\%)를 시행 기준으로 제외했다.
+분석한 참가자의 주 입력 방식은 터치 \NinputTouch{}명, 마우스 \NinputMouse{}명, 키보드 \NinputKey{}명이었다.
+제외된 세션과 시행 하나하나의 사유는 재현 패키지의 \texttt{analysis/output/exclusions.csv}와 \texttt{results.json}에 있다.
+
+\subsection{기술통계}
+표~\ref{tab:desc}는 참가자별 조건 중앙값을 다시 참가자들에 걸쳐 요약한 것이다.
+그림~\ref{fig:paired}은 참가자 한 명을 선 하나로 이어, 두 조건의 값을 나란히 보여 준다.
+
+\begin{table}[h]
+\centering\small
+\caption{참가자별 반응시간 중앙값의 요약 (단위 ms, $n=\Nanalyzed$)}\label{tab:desc}
+\IfFileExists{generated/table_desc.tex}{\input{generated/table_desc}}{\Pend}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\IfFileExists{figures/fig_paired.pdf}{\includegraphics[width=0.48\linewidth]{figures/fig_paired.pdf}}{\fbox{\Pend}}\hfill
+\IfFileExists{figures/fig_diff.pdf}{\includegraphics[width=0.48\linewidth]{figures/fig_diff.pdf}}{\fbox{\Pend}}
+\caption{왼쪽: 참가자별 조건 중앙값. 회색 선 하나가 참가자 한 명이고, 검은 선은 참가자 중앙값이다.
+오른쪽: 참가자별 차이(신호 있음 $-$ 없음). 점 하나가 참가자 한 명이고, 세로선은 중앙값, 음영은 부트스트랩 95\% 신뢰구간이다.
+0보다 왼쪽이면 신호가 있을 때 빨랐다는 뜻이다.}\label{fig:paired}
+\end{figure}
+
+\subsection{확증 분석}
+신호 있음 조건의 참가자 중앙값은 \MedCue\,ms, 신호 없음 조건은 \MedNocue\,ms였다.
+참가자별 차이 $d$의 중앙값은 \DiffMedian\,ms(부트스트랩 95\% CI [\BootCIlo, \BootCIhi])였다.
+사전 등록한 단측 Wilcoxon 부호순위 검정 결과는 $W=\Wstat$, $p$ \Wp{}였다.
+사전에 정한 판정 규칙에 따라 가설은 \textbf{\ResVerdict}.
+
+\subsection{보조 분석}
+평균 차이는 \DiffMean\,ms(표준편차 \DiffSD, 95\% CI [\DiffCIlo, \DiffCIhi])였다.
+단측 대응 $t$검정은 $t(\Tdf)=\Tstat$, $p$ \Tp{}였고, 효과크기는 $d_z=\Dz$였다.
+차이가 0이 아닌 \Nnonzero{}명 중 \Kfaster{}명이 신호가 있을 때 더 빨랐다(부호 검정 $p$ \SignP).
+이 표본 크기에서 단측 $t$검정이 검정력 .80으로 잡아낼 수 있는 최소 효과크기는 $d_z\approx\MDEdz$이다.
+
+\subsection{탐색 분석 (사전 등록한 확증 분석이 아님)}
+조기 반응은 신호 있음 조건에서 \AntCue{}건, 신호 없음 조건에서 \AntNocue{}건이었다(조건별 본 시행 \TrialsPerCond{}회 중).
+입력 방식별 차이는 \texttt{results.json}의 \texttt{diff\_by\_input\_type}에 있으나, 집단별 인원이 적어 해석하지 않는다.
+
+\TODO{데이터를 본 뒤 작성: 가설대로 나온 부분과 다르게 나온 부분을 나눠 한 문단으로 정리 (T10-C32, C35). 반대 방향 참가자 수와 그 크기를 숨기지 말고 적는다.}
