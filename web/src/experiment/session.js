@@ -25,11 +25,21 @@ function safeSet(key, value) {
   }
 }
 
+// 연구자 점검용: 주소에 ?pilot=1 이 있으면 파일럿 세션. 서버는 pilot/ 경로에 따로 저장하고 분석에서 빠진다.
+export function isPilot() {
+  try {
+    return new URLSearchParams(window.location.search).get('pilot') === '1';
+  } catch {
+    return false;
+  }
+}
+
 export function previousCompletion() {
   return safeGet(DONE_KEY);
 }
 export function markCompleted(sessionId) {
-  safeSet(DONE_KEY, sessionId);
+  // 파일럿 참여는 재참여 판정에 영향을 주지 않는다 (연구자 기기에서 본 참여를 따로 할 수 있도록)
+  if (!isPilot()) safeSet(DONE_KEY, sessionId);
 }
 
 // 기기 정보는 분석(입력 방식별 차이)과 품질 점검에만 쓴다. 이름·연락처 등 식별 정보는 받지 않는다.
@@ -38,6 +48,7 @@ export function collectMeta({ ageBand, estFrameMs }) {
   return {
     session_id: uuid(),
     app_version: APP_VERSION,
+    pilot: isPilot(),
     config: CONFIG,
     repeat_participation: Boolean(previousCompletion()),
     age_band: ageBand || null,

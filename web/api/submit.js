@@ -49,9 +49,11 @@ export default async function handler(req, res) {
     trials: body.trials,
   };
   const day = record.received_at.slice(0, 10);
+  // 연구자 파일럿(?pilot=1)은 별도 경로에 둔다. pull_data.mjs는 sessions/만 내려받으므로 분석에 섞이지 않는다.
+  const prefix = body.meta.pilot === true ? 'pilot' : 'sessions';
 
   try {
-    await put(`sessions/${day}/${body.meta.session_id}.json`, JSON.stringify(record), {
+    await put(`${prefix}/${day}/${body.meta.session_id}.json`, JSON.stringify(record), {
       access: 'public',
       addRandomSuffix: true,
       contentType: 'application/json',

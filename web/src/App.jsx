@@ -5,6 +5,7 @@ import { createRunner, estimateFrameMs } from './experiment/runner.js';
 import {
   collectMeta,
   downloadBackup,
+  isPilot,
   markCompleted,
   personalSummary,
   previousCompletion,
@@ -99,6 +100,9 @@ export default function App() {
             <li>기록되는 것: 반응시간, 입력 방식(터치/마우스/키보드), 화면 크기, 브라우저 정보</li>
             <li>수집한 기록은 대학 과제 논문의 원자료로만 쓰고, 익명 상태로 공개될 수 있습니다</li>
           </ul>
+          {isPilot() && (
+            <p className="notice">파일럿 모드: 이 기록은 따로 저장되며 분석에 포함되지 않습니다.</p>
+          )}
           {repeat.current && (
             <p className="notice">
               이 브라우저에서 이미 한 번 참여하셨습니다. 다시 하셔도 되지만, 두 번째 기록은 분석에서 제외됩니다.
