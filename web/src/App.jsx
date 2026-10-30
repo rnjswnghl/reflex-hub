@@ -5,15 +5,24 @@ import { createRunner, estimateFrameMs } from './experiment/runner.js';
 import {
   collectMeta,
   downloadBackup,
+  flushPending,
   isPilot,
   markCompleted,
+  markStarted,
   personalSummary,
   previousCompletion,
+  savePending,
   submit,
 } from './experiment/session.js';
 
 const AGE_BANDS = ['10대', '20대', '30대', '40대', '50대 이상'];
-const TOTAL_MAIN = CONFIG.mainPerCondition * 2;
+const TOTAL_PRACTICE = 2 * (CONFIG.practicePerCondition + CONFIG.practiceCatchPerCondition);
+const TOTAL_MAIN = 2 * (CONFIG.mainPerCondition + CONFIG.mainCatchPerCondition);
+const SAW_CUE = [
+  ['yes', '네, 봤어요'],
+  ['no', '아니요, 못 봤어요'],
+  ['unsure', '잘 모르겠어요'],
+];
 
 export default function App() {
   const [screen, setScreen] = useState('intro');
@@ -24,13 +33,20 @@ export default function App() {
   const [upload, setUpload] = useState('idle'); // idle | sending | ok | fail
   const session = useRef({ meta: null, trials: [], seq: [] });
   const stageRef = useRef(null);
+  const cueRef = useRef(null);
   const targetRef = useRef(null);
   const feedbackRef = useRef(null);
   const repeat = useRef(Boolean(previousCompletion()));
 
+  useEffect(() => {
+    flushPending();
+  }, []);
+
   async function start() {
     const estFrameMs = await estimateFrameMs();
-    session.current = { meta: collectMeta({ ageBand, estFrameMs }), trials: [], seq: buildSequence() };
+    const meta = collectMeta({ ageBand, estFrameMs });
+    session.current = { meta, trials: [], seq: buildSequence() };
+    markStarted(meta.session_id);
     setScreen('howto');
   }
 
@@ -39,6 +55,7 @@ export default function App() {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     const runner = createRunner({
       stage: stageRef.current,
+      cueFrame: cueRef.current,
       target: targetRef.current,
       feedback: feedbackRef.current,
     });
@@ -53,16 +70,24 @@ export default function App() {
       runner.dispose();
     }
     if (block === 'practice') setScreen('ready');
-    else finish();
+    else {
+      const { meta, trials: rows } = session.current;
+      meta.finished_at = new Date().toISOString();
+      savePending(meta, rows); // 조작 점검 문항에서 창을 닫아도 기록은 남는다
+      setScreen('check');
+    }
   }
 
-  async function finish() {
+  // 조작 점검 답을 받은 뒤 '먼저 저장하고' 결과를 보여 준다 (결과만 보고 창을 닫아 기록이 사라지는 것 방지)
+  async function answerCheck(value) {
     const { meta, trials } = session.current;
-    meta.finished_at = new Date().toISOString();
-    setResult(personalSummary(trials));
-    setScreen('done');
+    meta.saw_cue = value;
+    savePending(meta, trials);
     markCompleted(meta.session_id);
+    setResult(personalSummary(trials));
+    setScreen('saving');
     await send();
+    setScreen('done');
   }
 
   async function send() {
@@ -88,21 +113,22 @@ export default function App() {
 
       {screen === 'intro' && (
         <main className="card">
-          <p className="eyebrow">반응속도 실험 · 약 3분</p>
+          <p className="eyebrow">반응속도 실험 · 약 4분</p>
           <h1>얼마나 빨리 반응하시나요?</h1>
           <p className="lead">
             화면 가운데에 원이 나타나면 최대한 빨리 누르는 실험입니다. 끝나면 내 반응속도를 바로 확인할 수
             있습니다.
           </p>
           <ul className="facts">
-            <li>연습 {CONFIG.practicePerCondition * 2}회 + 본 실험 {TOTAL_MAIN}회</li>
+            <li>
+              연습 {TOTAL_PRACTICE}회 + 본 실험 {TOTAL_MAIN}회
+            </li>
             <li>이름·연락처 등 개인을 식별하는 정보는 받지 않습니다</li>
             <li>기록되는 것: 반응시간, 입력 방식(터치/마우스/키보드), 화면 크기, 브라우저 정보</li>
             <li>수집한 기록은 대학 과제 논문의 원자료로만 쓰고, 익명 상태로 공개될 수 있습니다</li>
+            <li>실험의 구체적인 목적은 수집이 끝난 뒤 공개합니다</li>
           </ul>
-          {isPilot() && (
-            <p className="notice">파일럿 모드: 이 기록은 따로 저장되며 분석에 포함되지 않습니다.</p>
-          )}
+          {isPilot() && <p className="notice">파일럿 모드: 이 기록은 따로 저장되며 분석에 포함되지 않습니다.</p>}
           {repeat.current && (
             <p className="notice">
               이 브라우저에서 이미 한 번 참여하셨습니다. 다시 하셔도 되지만, 두 번째 기록은 분석에서 제외됩니다.
@@ -145,11 +171,14 @@ export default function App() {
               누릅니다.
             </li>
             <li>가끔 화면 테두리가 잠깐 밝아질 수 있습니다. 테두리가 아니라 원에 반응하세요.</li>
+            <li>
+              가끔은 <b>원이 나오지 않습니다.</b> 그때는 누르지 말고 기다리세요.
+            </li>
             <li>원이 나오기 전에 누르면 그 회차는 무효입니다.</li>
           </ol>
           <p className="hint">조용한 곳에서, 한 가지 입력 방식으로 끝까지 해 주세요. 휴대폰이라면 세로 화면을 권장합니다.</p>
           <button className="primary" onClick={() => runBlock('practice')}>
-            연습 시작 ({CONFIG.practicePerCondition * 2}회)
+            연습 시작 ({TOTAL_PRACTICE}회)
           </button>
         </main>
       )}
@@ -159,7 +188,7 @@ export default function App() {
           <p className="eyebrow">연습 끝</p>
           <h1>이제 본 실험입니다</h1>
           <p className="lead">
-            {TOTAL_MAIN}회 진행하며 약 2분 걸립니다. 중간에 다른 앱이나 탭으로 넘어가지 말아 주세요.
+            {TOTAL_MAIN}회 진행하며 약 3분 걸립니다. 중간에 다른 앱이나 탭으로 넘어가지 말아 주세요.
           </p>
           <button className="primary" onClick={() => runBlock('main')}>
             본 실험 시작
@@ -168,7 +197,8 @@ export default function App() {
       )}
 
       {inTask && (
-        <div className="stage" ref={stageRef} data-cue="off" data-fix="off" role="application" aria-label="반응 영역">
+        <div className="stage" ref={stageRef} data-fix="off" role="application" aria-label="반응 영역">
+          <div className="cue-frame" ref={cueRef} data-on="false" aria-hidden="true" />
           {screen === 'main' && (
             <div className="progress" aria-hidden="true">
               <div style={{ width: `${(progress.done / progress.total) * 100}%` }} />
@@ -181,38 +211,59 @@ export default function App() {
         </div>
       )}
 
+      {screen === 'check' && (
+        <main className="card">
+          <p className="eyebrow">마지막 질문</p>
+          <h1>실험 중에 화면 테두리가 잠깐 밝아지는 것을 보셨나요?</h1>
+          <div className="choices">
+            {SAW_CUE.map(([v, label]) => (
+              <button key={v} className="ghost" onClick={() => answerCheck(v)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </main>
+      )}
+
+      {screen === 'saving' && (
+        <main className="card">
+          <p className="eyebrow">거의 끝났습니다</p>
+          <h1>기록을 저장하는 중…</h1>
+        </main>
+      )}
+
       {screen === 'done' && (
         <main className="card">
           <p className="eyebrow">완료 · 참여해 주셔서 감사합니다</p>
           <h1>내 반응속도</h1>
-          {result?.cue != null && result?.nocue != null ? (
-            <>
-              <div className="scores">
-                <div>
-                  <span className="label">테두리 신호 있을 때</span>
-                  <span className="num">{Math.round(result.cue)}<small> ms</small></span>
-                </div>
-                <div>
-                  <span className="label">신호 없을 때</span>
-                  <span className="num">{Math.round(result.nocue)}<small> ms</small></span>
-                </div>
+          {result?.median != null ? (
+            <div className="scores">
+              <div>
+                <span className="label">중앙값</span>
+                <span className="num">
+                  {Math.round(result.median)}
+                  <small> ms</small>
+                </span>
               </div>
-              <p className="lead">
-                {result.diff < 0
-                  ? `신호가 있을 때 ${Math.abs(Math.round(result.diff))} ms 더 빨랐습니다.`
-                  : result.diff > 0
-                    ? `신호가 있을 때 오히려 ${Math.round(result.diff)} ms 느렸습니다.`
-                    : '두 조건의 반응속도가 같았습니다.'}{' '}
-                이 실험은 "미리 주는 시각 신호가 반응을 빠르게 하는가"를 확인하기 위한 것이었습니다.
-              </p>
-            </>
+              <div>
+                <span className="label">최고 기록</span>
+                <span className="num">
+                  {Math.round(result.best)}
+                  <small> ms</small>
+                </span>
+              </div>
+            </div>
           ) : (
             <p className="lead">유효한 반응이 부족해 개인 결과를 계산하지 못했습니다.</p>
           )}
+          <p className="hint">
+            반응시간에는 기기의 화면·입력 지연이 함께 들어 있어, 다른 기기로 한 사람과 숫자를 그대로 비교하기는
+            어렵습니다.
+          </p>
           <p className={`upload ${upload}`}>
-            {upload === 'sending' && '기록을 저장하는 중…'}
             {upload === 'ok' && '기록이 저장되었습니다.'}
-            {upload === 'fail' && '저장에 실패했습니다. 다시 시도하거나 파일로 받아 연구자에게 보내 주세요.'}
+            {upload === 'fail' &&
+              '저장에 실패했습니다. 다시 시도하거나 파일로 받아 연구자에게 보내 주세요. (다음에 이 페이지를 열면 자동으로 다시 보냅니다)'}
           </p>
           {upload === 'fail' && (
             <div className="row">
@@ -224,7 +275,7 @@ export default function App() {
               </button>
             </div>
           )}
-          <ShareButton result={result} />
+          <ShareButton />
         </main>
       )}
 
@@ -238,17 +289,16 @@ export default function App() {
   );
 }
 
-function ShareButton({ result }) {
+// 공유 문구에는 결과 수치나 실험 목적을 넣지 않는다 (뒤 참가자 오염 방지)
+function ShareButton() {
   const [copied, setCopied] = useState(false);
-  useEffect(() => setCopied(false), [result]);
-  if (!result?.nocue) return null;
-  const text = `내 반응속도 ${Math.round(Math.min(result.cue, result.nocue))}ms. 너는 몇 ms? `;
+  const text = '3분짜리 반응속도 실험에 참여해 주세요. 끝나면 내 반응속도를 알려 줍니다.';
   async function share() {
     const url = window.location.origin;
     try {
       if (navigator.share) await navigator.share({ title: 'Reflex Hub', text, url });
       else {
-        await navigator.clipboard.writeText(text + url);
+        await navigator.clipboard.writeText(`${text} ${url}`);
         setCopied(true);
       }
     } catch {

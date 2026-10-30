@@ -27,10 +27,13 @@ cp -r paper/main.tex paper/meta.tex paper/pending.tex paper/refs.bib paper/secti
 # 원자료·분석·실험 코드·문서
 mkdir -p "$STAGE/data"
 [[ -d data/raw ]] && cp -r data/raw "$STAGE/data/"
-rsync -a --exclude '__pycache__' --exclude 'tests/__pycache__' analysis "$STAGE/"
-rsync -a --exclude node_modules --exclude dist --exclude '.vercel' --exclude '.env*' web "$STAGE/"
-cp -r docs scripts "$STAGE/"
+cp -r analysis web docs scripts "$STAGE/"
+# 패키지에 넣지 않을 것: 의존성·빌드 산출물·비밀값·캐시·분석 점검용 가상 데이터 생성기 산출물
+rm -rf "$STAGE/web/node_modules" "$STAGE/web/dist" "$STAGE/web/.vercel"
+find "$STAGE" \( -name '__pycache__' -o -name '.env*' -o -name '.DS_Store' \) -prune -exec rm -rf {} +
 cp README.md REPRODUCE.md "$STAGE/"
+# 사전 등록 시점 증거: ZIP에는 .git이 없으므로 커밋 정보를 따로 넣는다
+(git log --format='%H %ad %an %s' --date=iso -- docs/04-preregistration.md analysis/run_analysis.py > "$STAGE/docs/evidence/git-history-prereg.txt") 2>/dev/null || true
 
 # 빠진 파일 확인용 목록
 (cd "$STAGE" && find . -type f | sort > MANIFEST.txt)

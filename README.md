@@ -6,7 +6,7 @@ ALEPH 과제 10 "AI와 함께 쓰는 첫 논문"의 저장소입니다. 웹 반�
 
 ## 실험 참여
 
-- 실험 페이지: https://reflex-hub.vercel.app (약 3분, 로그인 없음, 휴대폰·PC 모두 가능)
+- 실험 페이지: https://reflex-hub.vercel.app (약 4분, 로그인 없음, 휴대폰·PC 모두 가능)
 
 ## 진행 상황
 
@@ -14,7 +14,7 @@ ALEPH 과제 10 "AI와 함께 쓰는 첫 논문"의 저장소입니다. 웹 반�
 |---|---|---|
 | 1. 질문을 가설로 | 완료 | [docs/01-hypothesis.md](docs/01-hypothesis.md) |
 | 2. 논거 세우기 | 완료 (문헌 10편, 2회 검증) | [docs/02-literature.md](docs/02-literature.md) |
-| 3. 실험 설계와 실행 | 설계·점검 완료, **데이터 수집 대기** | [docs/03-design.md](docs/03-design.md), [사전 등록](docs/04-preregistration.md) |
+| 3. 실험 설계와 실행 | 설계·점검·독립 검토 완료(앱 1.1.0, 사전 등록 v2), **데이터 수집 대기** | [docs/03-design.md](docs/03-design.md), [사전 등록](docs/04-preregistration.md), [검토](docs/review/2026-10-30-review.md) |
 | 4. 결과 해석 | 수집 후 | [docs/05-results-notes.md](docs/05-results-notes.md) |
 | 5. 논문으로 묶기 | 원고 초안 완료, 결과 절 대기 | [paper/](paper/), [CHECKLIST](docs/CHECKLIST.md) |
 

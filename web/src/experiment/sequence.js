@@ -21,19 +21,24 @@ function preCue(rng) {
   return Math.round(lo + rng() * (hi - lo));
 }
 
-// 조건 순서는 참가자마다 무작위. 연습은 조건 균형만 맞추고 순서도 무작위.
-// 두 조건의 대기시간 분포는 동일하다 → 조건 차이는 '경고 신호 유무'뿐.
-export function buildSequence(rng = rand) {
-  const make = (block, n) =>
-    shuffle(
-      [
-        ...Array.from({ length: n }, () => CONDITIONS.CUE),
-        ...Array.from({ length: n }, () => CONDITIONS.NOCUE),
-      ],
-      rng,
-    ).map((condition) => ({ block, condition, preCueMs: preCue(rng) }));
+// 한 블록을 만든다. 대기시간은 '짝맞춤': 같은 대기시간 집합을 두 조건에 똑같이 배정한다.
+// → 두 조건의 대기시간 분포가 표본 수준에서도 정확히 같다 (우연한 평균 차이 없음).
+// 캐치 시행(isCatch)은 경고 시점까지는 같지만 목표가 나오지 않는다.
+function makeBlock(block, nTarget, nCatch, rng) {
+  const trials = [];
+  for (const isCatch of [false, true]) {
+    const n = isCatch ? nCatch : nTarget;
+    const pre = Array.from({ length: n }, () => preCue(rng));
+    for (const condition of [CONDITIONS.CUE, CONDITIONS.NOCUE]) {
+      for (const preCueMs of pre) trials.push({ block, condition, isCatch, preCueMs });
+    }
+  }
+  return shuffle(trials, rng);
+}
 
-  const practice = make('practice', CONFIG.practicePerCondition);
-  const main = make('main', CONFIG.mainPerCondition);
+// 조건 순서는 참가자마다 무작위. 연습 블록 뒤에 본 블록.
+export function buildSequence(rng = rand) {
+  const practice = makeBlock('practice', CONFIG.practicePerCondition, CONFIG.practiceCatchPerCondition, rng);
+  const main = makeBlock('main', CONFIG.mainPerCondition, CONFIG.mainCatchPerCondition, rng);
   return [...practice, ...main].map((t, i) => ({ ...t, trialIndex: i }));
 }

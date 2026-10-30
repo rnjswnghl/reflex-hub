@@ -7,9 +7,11 @@
 | 필요한 것 | 버전 | 용도 |
 |---|---|---|
 | Python | 3.10 이상 | 분석 |
-| `pip install -r analysis/requirements.txt` | pandas, numpy, scipy, matplotlib | 분석 |
+| `pip install -r analysis/requirements.txt` | pandas 3.0.5, numpy 2.5.3, scipy 1.18.1, matplotlib 3.11.2 (고정) | 분석 |
 | XeLaTeX + BibTeX (TeX Live) | 2022 이상, Noto CJK KR 글꼴 | 논문 PDF |
+| poppler-utils (`pdftotext`), `zip` | 아무 버전 | 제출 점검, ZIP 묶기 |
 | Node.js | 20 이상 | 실험 페이지 실행·원자료 내려받기 (선택) |
+| `pip install playwright && playwright install chromium` | 1.40 이상 | 측정 도구 점검 (선택) |
 
 ## 1. 원자료 → 분석용 CSV
 
@@ -18,14 +20,15 @@ python3 analysis/build_dataset.py
 ```
 - 입력: `data/raw/sessions/**/*.json` — 참가자 1명 = 파일 1개, 서버에 저장된 그대로
 - 출력: `data/raw/trials.csv` (시행 1개 = 1행), `data/raw/sessions.csv` (참가자 1명 = 1행)
-- 확인: `trials.csv` 행 수 = 46 × 세션 수 (완료 세션 기준)
+- 확인: `trials.csv` 행 수 = 54 × 세션 수 (연습 8 + 본 블록 46)
 
 ## 2. 사전 등록한 분석
 
 ```bash
 python3 analysis/run_analysis.py
 ```
-- 규칙: `docs/04-preregistration.md` (데이터 수집 전에 고정, Git 기록으로 시점 확인 가능)
+- 규칙: `docs/04-preregistration.md` v2 (데이터 수집 전에 고정, `docs/evidence/preregistration-commit.md`)
+- 수집 기간: `analysis/collection_window.json` (없으면 분석이 실행되지 않음)
 - 출력: `analysis/output/results.json`(모든 수치), `participants.csv`, `exclusions.csv`,
   `paper/generated/*.tex`(논문 수치 매크로·표), `paper/figures/*.pdf`
 - 논문 본문의 숫자는 모두 이 매크로에서 옵니다. 손으로 적은 수치는 없습니다.
@@ -41,8 +44,8 @@ bash scripts/build_paper.sh      # → paper/build/main.pdf
 | 무엇을 | 명령 | 기대 결과 |
 |---|---|---|
 | 실험 파라미터 | `cd web && npm install && npm test` | 3개 테스트 통과 |
-| 분석 파이프라인 | `python3 analysis/tests/test_pipeline.py` | 효과를 심은 가상 데이터 → 지지, 효과 0 → 지지 안 됨, 가상 데이터는 기본 거부 |
-| 측정 도구 | `cd web && npm run build && python3 e2e/system_check.py` | 경고→목표 500±20 ms, 로봇 RT 250 ms가 +0~40 ms 안에서 기록 |
+| 분석 파이프라인 | `python3 analysis/tests/test_pipeline.py` | 단위 시험 통과, 효과를 심은 가상 데이터 → 지지, 효과 0 → 지지 안 됨, 가상 데이터는 기본 거부 |
+| 측정 도구 | `cd web && npm run build && python3 e2e/system_check.py` | 54행, 캐치 통과, 경고→목표 500±20 ms, 점등 100 −8/+40 ms, 로봇 RT 250 ms가 +0~40 ms 안에서 기록 |
 | 제출 점검 | `python3 scripts/check_submission.py` | "제출 가능" |
 
 ## 5. 실험 자체를 다시 돌리려면

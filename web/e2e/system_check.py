@@ -30,12 +30,15 @@ ROBOT = """
     s.__watched = true;
     const target = s.querySelector('.target');
     new MutationObserver(() => {
-      if (s.dataset.cue === 'on') window.__robot.cueOn++;
       if (s.dataset.fix === 'on') {
         window.__robot.trial++;
         if (window.__robot.trial === earlyTrial) setTimeout(press, 300);
       }
-    }).observe(s, { attributes: true, attributeFilter: ['data-cue', 'data-fix'] });
+    }).observe(s, { attributes: true, attributeFilter: ['data-fix'] });
+    const frame = s.querySelector('.cue-frame');
+    new MutationObserver(() => {
+      if (frame.dataset.on === 'true') window.__robot.cueOn++;
+    }).observe(frame, { attributes: true, attributeFilter: ['data-on'] });
     new MutationObserver(() => {
       if (target.dataset.on === 'true') setTimeout(press, delay);
     }).observe(target, { attributes: true, attributeFilter: ['data-on'] });
@@ -72,7 +75,8 @@ def main():
             page.click('text=시작하기')
             page.click('text=연습 시작')
             page.click('text=본 실험 시작', timeout=120_000)
-            page.wait_for_selector('text=기록이 저장되었습니다', timeout=400_000)
+            page.click('text=네, 봤어요', timeout=400_000)
+            page.wait_for_selector('text=기록이 저장되었습니다', timeout=60_000)
             cue_flashes = page.evaluate('window.__robot.cueOn')
             browser.close()
     finally:
@@ -83,6 +87,10 @@ def main():
     rts = [t['rt_ms'] for t in ok]
     lag = [t['cue_target_actual_ms'] for t in trials if t['cue_target_actual_ms'] is not None]
     n_cue = sum(t['condition'] == 'cue' for t in trials)
+    cue_on = [t['cue_on_actual_ms'] for t in trials if t['cue_on_actual_ms'] is not None]
+    catch = [t for t in trials if t['is_catch']]
+    from collections import Counter
+    preset = {c: sorted(t['precue_planned_ms'] for t in trials if t['block'] == 'main' and not t['is_catch'] and t['condition'] == c) for c in ('cue', 'nocue')}
     report = {
         'what': 'system check with in-browser robot (NOT participant data)',
         'robot_delay_ms': ROBOT_DELAY_MS,
@@ -90,7 +98,10 @@ def main():
         'est_frame_ms': payload['meta']['est_frame_ms'],
         'rows': len(trials),
         'rows_main': sum(t['block'] == 'main' for t in trials),
-        'status_counts': {s: sum(t['status'] == s for t in trials) for s in ('ok', 'anticipation', 'timeout')},
+        'status_counts': dict(Counter(t['status'] for t in trials)),
+        'catch_rows': len(catch),
+        'cue_on_actual_ms': {'min': min(cue_on), 'median': st.median(cue_on), 'max': max(cue_on)},
+        'server_saw_meta': {k: payload['meta'].get(k) for k in ('pilot', 'saw_cue', 'repeat_participation', 'prior_start')},
         'anticipation_rows': [
             {k: t[k] for k in ('trial_index', 'condition', 'rt_ms', 'cue_target_actual_ms')}
             for t in trials if t['status'] == 'anticipation'
@@ -102,7 +113,14 @@ def main():
         'time_source': sorted({t['time_source'] for t in ok}),
     }
     checks = {
-        'row count = 6 practice + 40 main': report['rows'] == 46 and report['rows_main'] == 40,
+        'row count = 8 practice + 46 main (catch 2+6)': report['rows'] == 54 and report['rows_main'] == 46
+        and report['catch_rows'] == 8,
+        'robot never pressed on catch trials -> all non-early catch rows are catch_ok': all(
+            t['status'] in ('catch_ok', 'anticipation') for t in catch),
+        'paired foreperiods: same set in both conditions': preset['cue'] == preset['nocue'],
+        # 소등은 목표 시각에 '가장 가까운' 프레임에서 하므로 최대 반 프레임(8 ms) 일찍 끝날 수 있다
+        'cue on-duration within 100 -8..+40 ms (frame-scheduled off)': all(92 <= x <= 140 for x in cue_on),
+        'manipulation-check answer stored': payload['meta'].get('saw_cue') == 'yes',
         # 로봇이 한 번 일찍 누름 → 정확히 1건이 조기 반응으로, RT 없이 기록되어야 한다
         'one early press -> one anticipation row without RT': len(report['anticipation_rows']) == 1
         and report['anticipation_rows'][0]['rt_ms'] is None,

@@ -4,7 +4,7 @@
 출력: data/raw/trials.csv   (시행 1개 = 1행, 연습 포함 전부)
       data/raw/sessions.csv (참가자 세션 1개 = 1행)
 
-같은 session_id가 여러 번 들어오면(재전송 등) 가장 먼저 받은 것 하나만 남기고 그 사실을 기록한다.
+같은 session_id가 여러 번 들어오면(재전송 등) 서버가 가장 먼저 받은 것(received_at) 하나만 남기고 그 사실을 기록한다.
 원본 JSON은 절대 수정하지 않는다.
 """
 import argparse
@@ -16,27 +16,34 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 
 META_COLS = [
-    'session_id', 'app_version', 'repeat_participation', 'age_band', 'user_agent', 'platform',
+    'session_id', 'app_version', 'pilot', 'repeat_participation', 'prior_start', 'saw_cue', 'resent',
+    'age_band', 'user_agent', 'platform',
     'pointer_coarse', 'max_touch_points', 'viewport_w', 'viewport_h', 'dpr', 'est_frame_ms',
-    'started_at', 'finished_at', 'received_at', 'source_file',
+    'started_at', 'finished_at', 'received_at', 'server_commit', 'source_file',
 ]
 
 
 def load(paths):
+    recs = []
+    for p in paths:
+        rec = json.loads(Path(p).read_text(encoding='utf-8'))
+        received = rec.get('received_at') or rec['meta'].get('finished_at') or ''
+        recs.append((received, str(p), rec))
+    recs.sort(key=lambda r: (r[0], r[1]))  # 서버 수신 시각 순 → 같은 세션이면 먼저 받은 것을 남긴다
+
     sessions, trials, dupes = [], [], []
     seen = {}
-    for p in sorted(paths):
-        rec = json.loads(Path(p).read_text(encoding='utf-8'))
+    for received, p, rec in recs:
         meta, rows = rec['meta'], rec['trials']
         sid = meta['session_id']
-        received = rec.get('received_at') or meta.get('finished_at')
         if sid in seen:
-            dupes.append({'session_id': sid, 'kept': seen[sid], 'dropped': str(p)})
+            dupes.append({'session_id': sid, 'kept': seen[sid], 'dropped': p})
             continue
-        seen[sid] = str(p)
+        seen[sid] = p
         m = {k: meta.get(k) for k in META_COLS}
         m['received_at'] = received
-        m['source_file'] = str(Path(p).relative_to(ROOT)) if Path(p).is_relative_to(ROOT) else str(p)
+        m['server_commit'] = rec.get('server_commit')
+        m['source_file'] = str(Path(p).relative_to(ROOT)) if Path(p).is_relative_to(ROOT) else p
         sessions.append(m)
         for r in rows:
             trials.append({'session_id': sid, **r})

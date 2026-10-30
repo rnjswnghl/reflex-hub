@@ -4,7 +4,7 @@ import { put } from '@vercel/blob';
 // 세션마다 파일을 따로 쓰므로 동시 제출이 서로 덮어쓰지 않는다.
 
 const MAX_BYTES = 200_000;
-const STATUSES = new Set(['ok', 'anticipation', 'timeout']);
+const STATUSES = new Set(['ok', 'anticipation', 'timeout', 'catch_ok', 'catch_fa']);
 const CONDITIONS = new Set(['cue', 'nocue']);
 const BLOCKS = new Set(['practice', 'main']);
 
@@ -17,6 +17,7 @@ function validate(body) {
   for (const t of trials) {
     if (!Number.isInteger(t.trial_index)) return 'trial_index';
     if (!BLOCKS.has(t.block) || !CONDITIONS.has(t.condition) || !STATUSES.has(t.status)) return 'enum';
+    if (typeof t.is_catch !== 'boolean') return 'is_catch';
     if (t.rt_ms !== null && (typeof t.rt_ms !== 'number' || !Number.isFinite(t.rt_ms))) return 'rt_ms';
   }
   return null;
@@ -45,6 +46,8 @@ export default async function handler(req, res) {
 
   const record = {
     received_at: new Date().toISOString(),
+    // 어떤 코드로 수집했는지: 배포된 커밋 (Vercel 시스템 환경변수)
+    server_commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
     meta: body.meta,
     trials: body.trials,
   };

@@ -1,0 +1,13 @@
+# 사전 등록 시점 증거
+
+분석 계획을 데이터 수집 전에 고정했다는 근거. ZIP에는 `.git`이 없으므로 여기에 커밋 정보를 남긴다.
+원본 이력은 https://github.com/rnjswnghl/reflex-hub/commits/main 에서 누구나 로그인 없이 확인할 수 있다.
+`scripts/package.sh`는 묶을 때 `docs/evidence/git-history-prereg.txt`에 관련 파일의 전체 커밋 이력을 자동으로 넣는다.
+
+| 판 | 커밋 | 날짜(KST) | 내용 |
+|---|---|---|---|
+| v1 | `5e0c825` | 2026-10-30 | 첫 사전 등록, 분석 코드 |
+| v2 | 이 파일을 추가한 커밋 | 2026-10-30 | 수집 전 독립 검토 반영 (`docs/review/2026-10-30-review.md`) |
+
+첫 참가자 데이터의 서버 수신 시각은 `data/raw/sessions.csv`의 `received_at` 최솟값이다. 이 시각이 v2 커밋보다 늦어야 한다.
+제3자 등록 기관(OSF 등)의 사전 등록이 아니므로, 저장소 소유자가 이력을 다시 쓰는 것을 기술적으로 막지는 못한다.

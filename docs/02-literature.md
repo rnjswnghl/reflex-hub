@@ -4,7 +4,7 @@
 
 ## 확인 방법 (C20)
 
-1. AI(Claude)가 가설과 관련된 후보 문헌을 기억에서 제시했다. 이 단계의 목록은 **검증 전 자료**로 취급했다.
+1. AI(Claude)가 가설과 관련된 후보 문헌을 기억에서 제시했다. 아래 확인 작업도 AI가 웹 검색·페이지 열람 도구로 수행했다(사람이 직접 연 것이 아니다). 이 단계의 목록은 **검증 전 자료**로 취급했다.
 2. 각 후보를 웹 검색으로 찾고, 출판사·PubMed Central·기관 저장소 등 서지 정보가 있는 페이지를 열어 **저자, 연도, 학술지, 권(호), 쪽, DOI**를 대조했다.
 3. 같은 페이지에서 초록(또는 서론)을 읽고, 이 연구의 어느 부분과 이어지는지 한 줄로 적었다. 숫자와 결론은 원문 페이지에서 직접 확인한 것만 적었다.
 4. 서지 정보를 확인하지 못했거나 내용이 기억과 다르면 목록에서 지웠다.
@@ -16,20 +16,20 @@
 
 | # | 문헌 (C12·C13) | 확인한 페이지 | 실험·데이터 검증 연구 (C16) | 이 연구의 어느 부분을 뒷받침하나 (C14) |
 |---|---|---|---|---|
-| 1 | Posner, M. I., & Petersen, S. E. (1990). The attention system of the human brain. *Annual Review of Neuroscience, 13*, 25–42. doi:10.1146/annurev.ne.13.030190.000325 | Petersen & Posner (2012)의 PMC 본문 참고문헌 목록에서 서지 대조 (PubMed 원 페이지는 접속 확인 화면에 막힘) | 이론·리뷰 | 주의 체계에 '각성(alerting)' 기능이 따로 있다는 이론적 틀 → 가설의 원인 변수(경고 신호)가 왜 반응을 바꿀 수 있는지 |
+| 1 | Posner, M. I., & Petersen, S. E. (1990). The attention system of the human brain. *Annual Review of Neuroscience, 13*, 25–42. doi:10.1146/annurev.ne.13.030190.000325 | Petersen & Posner (2012)의 PMC 본문 참고문헌 목록에서 서지 대조 (PubMed 원 페이지는 접속 확인 화면에 막힘) | 이론·리뷰 | 주의 체계에 '각성(alerting)' 기능이 따로 있다는 이론적 틀 → 가설의 원인 변수(경고 신호)가 왜 반응을 바꿀 수 있는지. *원문을 직접 열지 못하고 2012년 후속 논문의 참고문헌 목록과 검색 결과로 서지만 대조했다. 1990년 모형의 세 기능은 정향·목표 탐지·각성이다* |
 | 2 | Petersen, S. E., & Posner, M. I. (2012). The attention system of the human brain: 20 years after. *Annual Review of Neuroscience, 35*, 73–89. doi:10.1146/annurev-neuro-062111-150525 | pmc.ncbi.nlm.nih.gov/articles/PMC3413263, vivo.weill.cornell.edu (PMID 22524787) | 리뷰 | 1990년 모형을 갱신해 각성·정향·실행 통제를 서로 다른 네트워크로 정리 → 각성(경고 신호의 효과)을 독립된 기능으로 다루는 근거. *2차 재검증에서 초록에 "경고 신호가 반응을 빠르게 한다"는 문장은 없음을 확인해, 가설 방향의 근거는 문헌 5로 옮김* |
-| 3 | Fan, J., McCandliss, B. D., Sommer, T., Raz, A., & Posner, M. I. (2002). Testing the efficiency and independence of attentional networks. *Journal of Cognitive Neuroscience, 14*(3), 340–347. doi:10.1162/089892902317361886 | vivo.weill.cornell.edu (PMID 11970796) 서지·초록 | **실험** (성인 40명) | 반응시간 과제로 각성 효과를 개인 단위로 안정적으로 측정할 수 있다는 실험 근거 → 측정 방식(경고 유무 비교) |
+| 3 | Fan, J., McCandliss, B. D., Sommer, T., Raz, A., & Posner, M. I. (2002). Testing the efficiency and independence of attentional networks. *Journal of Cognitive Neuroscience, 14*(3), 340–347. doi:10.1162/089892902317361886 | vivo.weill.cornell.edu (PMID 11970796) 서지·초록 | **실험** (성인 40명) | 경고 단서가 있는 시행과 없는 시행의 반응시간 차이로 각성 효과를 재는 과제(ANT)를 제시 → 측정 방식(경고 유무 비교)의 선례. *ANT는 화살표 방향을 고르는 선택 반응 과제이므로 이 연구의 단순 반응 과제와 같지 않다(독립 검토 R3 지적, 반영)* |
 | 4 | Niemi, P., & Näätänen, R. (1981). Foreperiod and simple reaction time. *Psychological Bulletin, 89*, 133–162. | Journal 논문 참고문헌 목록(informahealthcare.com, 10.1080/17470218.2010.532225)에서 학술지·권·쪽 대조. 원문 페이지는 직접 열지 못함 | 리뷰 | 경고와 목표 사이 간격(예비 기간)이 단순 반응시간을 바꾼다는 고전 정리 → 두 조건의 대기시간 분포를 같게 맞춘 설계 이유 |
 | 5 | Weinbach, N., & Henik, A. (2012). Temporal orienting and alerting – the same or different? *Frontiers in Psychology, 3*, 236. doi:10.3389/fpsyg.2012.00236 | pmc.ncbi.nlm.nih.gov/articles/PMC3393878 | 리뷰 | (가) 중립적 경고 신호 뒤에는 신호가 없을 때보다 반응이 빠르다("Faster RTs are observed following these cues compared with a no-cue condition") → **가설의 방향(짧아진다)** / (나) 경고 신호는 각성과 '언제 나올지'에 대한 시간 정보를 함께 주므로 둘이 "commonly confounded in most experimental designs" → 이 연구의 **한계**(메커니즘 분리 불가) |
 | 6 | Reimers, S., & Stewart, N. (2015). Presentation and response timing accuracy in Adobe Flash and HTML5/JavaScript Web experiments. *Behavior Research Methods, 47*(2), 309–327. doi:10.3758/s13428-014-0471-1 | wrap.warwick.ac.uk/id/eprint/66017 | **실험** (19개 시스템, 전용 측정 장비) | JavaScript 웹 실험이 대부분의 참가자 내 설계에서 조건 간 반응시간 차이를 잡아낼 수 있다는 근거 → 웹으로 측정해도 되는 이유 |
 | 7 | Bridges, D., Pitiot, A., MacAskill, M. R., & Peirce, J. W. (2020). The timing mega-study: comparing a range of experiment generators, both lab-based and online. *PeerJ, 8*, e9414. doi:10.7717/peerj.9414 | doaj.org (PeerJ 2020 기록) | **실험** (측정 장비로 여러 프로그램·브라우저 비교) | 온라인 실험은 실험실보다 변동이 조금 크지만 다양한 연구에 쓸 수 있다는 근거 → 방법의 타당성과 한계 |
 | 8 | Anwyl-Irvine, A., Dalmaijer, E. S., Hodges, N., & Evershed, J. K. (2021). Realistic precision and accuracy of online experiment platforms, web browsers, and devices. *Behavior Research Methods, 53*(4), 1407–1425. doi:10.3758/s13428-020-01501-5 | research-information.bris.ac.uk 서지·초록 | **실험** (로봇 작동기로 응답 측정) | 현대 웹 플랫폼의 화면 표시·응답 기록 정밀도가 쓸 만한 수준이라는 근거 → 방법의 타당성 |
-| 9 | Pronk, T., Wiers, R. W., Molenkamp, B., & Murre, J. (2020). Mental chronometry in the pocket? Timing accuracy of web applications on touchscreen and keyboard devices. *Behavior Research Methods, 52*(3), 1371–1382. doi:10.3758/s13428-019-01321-2 | link.springer.com 해당 논문 페이지 | **실험** (터치스크린·키보드 기기 측정 + 시뮬레이션) | 기기마다 반응시간이 최소 수십 ms씩 과대 측정되지만, 같은 사람의 조건 간 차이(상대 RT)는 거의 영향받지 않는다 → **참가자 내 설계를 고른 핵심 근거** |
+| 9 | Pronk, T., Wiers, R. W., Molenkamp, B., & Murre, J. (2020). Mental chronometry in the pocket? Timing accuracy of web applications on touchscreen and keyboard devices. *Behavior Research Methods, 52*(3), 1371–1382. doi:10.3758/s13428-019-01321-2 | link.springer.com 해당 논문 페이지 | **실험** (터치스크린·키보드 기기 측정 + 시뮬레이션) | 반응시간이 일관되게 과대 측정되고(본문: "57 ms or more") 그 크기가 기기마다 다르지만, 기기 차이는 절대 RT보다 같은 사람 안의 상대 RT에 덜 영향을 준다 → **참가자 내 설계를 고른 핵심 근거** |
 | 10 | Ratcliff, R. (1993). Methods for dealing with reaction time outliers. *Psychological Bulletin, 114*(3), 510–532. doi:10.1037/0033-2909.114.3.510 | scilit.com 서지·초록 | 방법론(시뮬레이션) | 중앙값 같은 강건한 통계가 이상값과 절단 기준의 영향을 훨씬 덜 받는다 → 참가자별 **중앙값**을 쓰고 절단 기준을 미리 고정한 근거 |
 
 ## 이미 알려진 사실과 이 연구가 새로 주장하는 것 (C17)
 
-- **이미 알려진 것**: 실험실의 통제된 장비에서는 중립적 경고 신호가 단순 반응시간을 짧게 한다(문헌 1–3). 웹 브라우저는 조건 간 반응시간 차이를 잡아낼 만큼 정밀하다(문헌 6–9).
+- **이미 알려진 것**: 실험실의 통제된 장비에서는 중립적 경고 신호 뒤 반응이 빨라진다(문헌 5). 각성은 주의 체계의 독립된 기능으로 다뤄진다(문헌 1, 2). 경고 단서 유무로 각성 효과를 재는 방식이 확립되어 있다(문헌 3, 단 단순 반응이 아니라 화살표 방향을 고르는 선택 반응 과제). 웹 브라우저는 조건 간 반응시간 차이를 잡아낼 만큼 정밀하다(문헌 6–9).
 - **이 연구가 새로 확인하려는 것**: 참가자가 **자기 휴대폰·PC로, 감독 없는 환경에서** 하는 짧은 웹 과제에서도, UI 효과처럼 생긴 테두리 점등 신호가 같은 사람의 반응시간을 줄이는가. 새로운 이론이 아니라 기존 결과의 **현장 환경 재현**이다.
 
 ## 목록에서 뺀 항목 (C15)과 확인 과정에서 걸러낸 것

@@ -3,7 +3,7 @@
 자세한 내용은 패키지의 \texttt{REPRODUCE.md}에 있다.
 
 \begin{enumerate}
-\item 환경: Python 3.10 이상, \texttt{pip install -r analysis/requirements.txt}. 논문 빌드에는 XeLaTeX이 필요하다.
+\item 환경: Python 3.10 이상, \texttt{pip install -r analysis/requirements.txt}(버전 고정). 논문 빌드에는 XeLaTeX이 필요하다.
 \item 원자료 정리: \texttt{python3 analysis/build\_dataset.py}\\
 \texttt{data/raw/sessions/*.json} $\to$ \texttt{data/raw/trials.csv}, \texttt{sessions.csv}
 \item 사전 등록한 분석: \texttt{python3 analysis/run\_analysis.py}\\
@@ -14,10 +14,18 @@ $\to$ \texttt{analysis/output/results.json}, 논문 수치 매크로, 그림
 
 \section{AI에게 맡긴 일과 직접 판단한 일}\label{app:ai}
 이 연구는 AI(Claude)와 함께 진행했다.
-역할 구분과 판단 근거는 재현 패키지의 \texttt{docs/06-ai-and-me.md}에 기록했고, 요약은 다음과 같다.
-AI는 가설 문장의 결함 지적, 실험 페이지와 분석 코드 작성, 문헌 후보 제시와 서지 대조, 원고 초안 작성을 맡았다.
-AI가 제시한 문헌은 모두 웹에서 직접 서지를 대조했고, 대조 과정에서 원문과 맞지 않는 연결 문장 1건을 고쳤다.
-분석 규칙은 데이터를 보기 전에 고정했으므로, AI도 연구자도 결과를 본 뒤 판정 기준을 바꿀 수 없었다.
+역할 구분은 재현 패키지의 \texttt{docs/06-ai-and-me.md}에 기록했고, 요약은 다음과 같다.
+
+\textbf{연구자가 판단한 일.} 여러 후보 가운데 직접 만든 웹 페이지로 행동 데이터를 모으는 ``시각 효과·경고 유무'' 실험을 주제로 골랐다.
+결과물을 공개 저장소에 남기기로 했고, 링크 공유와 수집을 운영했다.
+AI 검토단의 지적을 받아들일지와 결과의 해석·결론은 연구자가 정했다.
+
+\textbf{AI가 한 일.} 가설 문장의 결함 지적, 실험 페이지와 분석 코드 작성, 문헌 후보 제시, 원고 초안 작성을 맡았다.
+문헌의 서지 확인도 AI가 웹 검색과 페이지 열람으로 두 차례 했다. 이 과정에서 원문 초록과 맞지 않는 연결 문장 1건을 찾아 고쳤다.
+수집 전에는 원고 작성 과정을 보지 않은 AI 서브에이전트 4개(방법론·통계·반론·과제 기준)가 독립적으로 검토했고, 그 결과로 설계와 분석 계획을 한 차례 고쳤다.
+
+\textbf{결과에 맞춰 고치지 않았다는 근거.} 분석 규칙과 해석의 두 갈래는 데이터를 보기 전에 공개 저장소에 커밋했다.
+이후 바꾸면 그 이력이 커밋으로 남는다. 다만 이는 제3자 등록 기관의 사전 등록이 아니다.
 
 \section{문서 대응표}
 과제 통과 기준(T10-C01--C51)과 이 논문·패키지의 대응 위치는 \texttt{docs/CHECKLIST.md}에 있다.

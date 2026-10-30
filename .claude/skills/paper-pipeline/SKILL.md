@@ -41,7 +41,10 @@ python3 scripts/check_submission.py | tail -15
 ## 2. 단계별 실행
 
 ### 수집 (사람이 운영)
-- 링크 공유일 = D0. 사용자에게 날짜를 받아 `docs/03-design.md` 설계 변경 기록과 `docs/05-results-notes.md` 수집 현황에 적는다.
+- 시작 전 확인: 사용자가 `docs/review/2026-10-30-review.md` 처리안과 사전 등록 v2를 승인했는가.
+- 링크 공유일 = D0. 사용자에게 날짜를 받아 `analysis/collection_window.json`(`{"start_kst": "D0", "end_kst": "D0+6일"}`)을 만들어 **수집 시작 전에** 커밋하고, `docs/05-results-notes.md` 수집 현황에 적는다.
+- 연구자 본인의 점검은 반드시 `https://reflex-hub.vercel.app/?pilot=1`로 한다(서버 `pilot/` 경로, 분석 제외).
+- 기간 연장 없음(사전 등록 §2).
 - 건수 확인만: `node scripts/pull_data.mjs && find data/raw/sessions -name '*.json' | wc -l`
 
 ### 분석 (수집 종료 후 한 번)
