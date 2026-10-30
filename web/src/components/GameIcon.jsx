@@ -27,6 +27,29 @@ export default function GameIcon({ id }) {
         )}
       </svg>
     );
+  if (id === 'green')
+    return (
+      <svg {...common}>
+        <path d="M2 36c8-10 16-12 24-6s12 4 16 2v10H2z" fill="currentColor" />
+        <path d="M2 30c10-12 20-14 30-6" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.45" />
+        <circle cx="32" cy="11" r="5" fill="currentColor" opacity="0.6" />
+      </svg>
+    );
+  if (id === 'breath')
+    return (
+      <svg {...common}>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.35" />
+        <circle cx="22" cy="22" r="11" fill="none" stroke="currentColor" strokeWidth="3" />
+        <circle cx="22" cy="22" r="4" fill="currentColor" />
+      </svg>
+    );
+  if (id === 'warmup')
+    return (
+      <svg {...common}>
+        <rect x="8" y="16" width="28" height="22" rx="7" fill="currentColor" />
+        <path d="M14 10l2 4M22 6v6M30 10l-2 4" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    );
   return (
     <svg {...common}>
       <circle cx="22" cy="24" r="15" fill="none" stroke="currentColor" strokeWidth="3" />

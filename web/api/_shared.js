@@ -47,9 +47,11 @@ export function reactionScore(trials, { penaltyMs = 100, minValid = 6 } = {}) {
   return Math.round(valid.reduce((s, t) => s + t.rt_ms, 0) / valid.length + penaltyMs * misses);
 }
 
+export const TIMING_TARGETS = [1, 3, 5, 10];
 export const GAME_PREFIX = {
   reaction: 'sessions/',
   stroop: 'scores/stroop/',
   schulte: 'scores/schulte/',
-  timing: 'scores/timing/',
+  ...Object.fromEntries(TIMING_TARGETS.map((t) => [`timing-${t}`, `scores/timing-${t}/`])),
 };
+export const PREPOST_GAMES = new Set(['green', 'breath', 'warmup']);

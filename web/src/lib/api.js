@@ -90,3 +90,13 @@ export function myRank(board, playerId, myBest) {
   // '상위 %'는 5명 이상일 때만 (혼자일 때 '상위 100%' 같은 이상한 표시 방지)
   return { rank: better + 1, total, topPct: total >= 5 ? Math.max(1, Math.ceil(((better + 1) / total) * 100)) : null };
 }
+
+// 전후 비교 실험실
+export function submitPrePost(body) {
+  return post('/api/prepost', body);
+}
+export async function fetchPrePost(game) {
+  const res = await fetch(`/api/prepost?game=${encodeURIComponent(game)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}

@@ -5,10 +5,19 @@ import ReactionGame from './games/reaction/ReactionGame.jsx';
 import SchulteGame from './games/SchulteGame.jsx';
 import StroopGame from './games/StroopGame.jsx';
 import TimingGame from './games/TimingGame.jsx';
+import PrePostGame from './games/prepost/PrePostGame.jsx';
 import { flushPending } from './lib/api.js';
 import { getPlayer, isPilot, savePlayer } from './lib/player.js';
 
-const COMPONENTS = { reaction: ReactionGame, stroop: StroopGame, schulte: SchulteGame, timing: TimingGame };
+const COMPONENTS = {
+  reaction: ReactionGame,
+  stroop: StroopGame,
+  schulte: SchulteGame,
+  timing: TimingGame,
+  green: PrePostGame,
+  breath: PrePostGame,
+  warmup: PrePostGame,
+};
 
 // 해시 라우팅: #/ = 허브, #/play/<게임> (새로고침·뒤로가기·공유 링크가 그대로 동작)
 function readRoute() {

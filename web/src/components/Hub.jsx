@@ -1,8 +1,46 @@
 import { useEffect, useState } from 'react';
-import { GAMES } from '../games/index.js';
+import { GAMES, TIMING_TARGETS } from '../games/index.js';
 import { fetchStats } from '../lib/api.js';
 import { getPlayer, nickName, rerollNick } from '../lib/player.js';
 import GameIcon from './GameIcon.jsx';
+
+function cardMeta(g, player) {
+  if (g.kind === 'prepost') {
+    const d = player.last?.[g.id];
+    return d == null ? '도전 전' : `지난번 ${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)}ms`;
+  }
+  if (g.id === 'timing') {
+    // 목표 시간별 기록 중 하나라도 있으면, 가장 최근에 고른 목표의 기록을 보여 준다
+    const done = TIMING_TARGETS.filter((t) => player.best[`timing-${t}`] != null);
+    if (!done.length) return '도전 전';
+    let t = done[0];
+    try {
+      const last = Number(localStorage.getItem('reflexhub.timing.target'));
+      if (done.includes(last)) t = last;
+    } catch {
+      /* 무시 */
+    }
+    return `${t}초 ${g.format(player.best[`timing-${t}`])}`;
+  }
+  return player.best[g.id] != null ? `최고 ${g.format(player.best[g.id])}` : '도전 전';
+}
+
+function Card({ g, player, onPlay }) {
+  return (
+    <button className={`card hue-${g.hue}`} data-game={g.id} onClick={() => onPlay(g.id)}>
+      <GameIcon id={g.id} />
+      <span className="card-title">
+        {g.title}
+        {g.subtitle && <span className="card-sub">{g.subtitle}</span>}
+      </span>
+      <span className="card-tag">{g.tagline}</span>
+      <span className="card-meta">
+        <span>약 {g.seconds}초</span>
+        <span>{cardMeta(g, player)}</span>
+      </span>
+    </button>
+  );
+}
 
 export default function Hub({ onPlay }) {
   const [player, setPlayer] = useState(getPlayer());
@@ -45,17 +83,19 @@ export default function Hub({ onPlay }) {
         )}
       </section>
 
+      <h2 className="section-title">기록 도전</h2>
       <section className="cards">
-        {GAMES.map((g) => (
-          <button key={g.id} className={`card hue-${g.hue}`} onClick={() => onPlay(g.id)}>
-            <GameIcon id={g.id} />
-            <span className="card-title">{g.title}</span>
-            <span className="card-tag">{g.tagline}</span>
-            <span className="card-meta">
-              <span>약 {g.seconds}초</span>
-              <span>{player.best[g.id] != null ? `최고 ${g.format(player.best[g.id])}` : '도전 전'}</span>
-            </span>
-          </button>
+        {GAMES.filter((g) => g.kind === 'record').map((g) => (
+          <Card key={g.id} g={g} player={player} onPlay={onPlay} />
+        ))}
+      </section>
+
+      <h2 className="section-title">
+        전후 비교 실험실 <small>무언가를 하기 전과 후, 내 반응은 달라질까?</small>
+      </h2>
+      <section className="cards">
+        {GAMES.filter((g) => g.kind === 'prepost').map((g) => (
+          <Card key={g.id} g={g} player={player} onPlay={onPlay} />
         ))}
       </section>
 

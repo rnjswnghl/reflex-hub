@@ -1,9 +1,13 @@
 import { put } from '@vercel/blob';
-import { UUID, entryName, kstDay, readBody, validNick } from './_shared.js';
+import { TIMING_TARGETS, UUID, entryName, kstDay, readBody, validNick } from './_shared.js';
 
-// 연구와 무관한 미니게임(컬러 함정, 1→16, 딱 1초)의 점수. 순위표에만 쓴다.
+// 연구와 무관한 미니게임(컬러 함정, 1→16, 딱 N초)의 점수. 순위표에만 쓴다.
 // 점수 범위가 말이 안 되는 값은 거른다(낮을수록 좋음, ms).
-const RANGE = { stroop: [2500, 300_000], schulte: [2500, 300_000], timing: [0, 5_000] };
+const RANGE = {
+  stroop: [2500, 300_000],
+  schulte: [2500, 300_000],
+  ...Object.fromEntries(TIMING_TARGETS.map((t) => [`timing-${t}`, [0, 60_000]])), // 오차(ms)
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

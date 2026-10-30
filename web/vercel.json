@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "headers": [
     {
-      "source": "/api/(submit|start|score)",
+      "source": "/api/(submit|start|score|prepost)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ]

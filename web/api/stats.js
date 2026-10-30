@@ -11,10 +11,15 @@ const ACTIVE_START_MIN = 3;
 const startPid = (p) => (p.match(/__p([0-9a-f]{8})\.json$/i) || [])[1];
 const startRound = (p) => p.split('/').pop().slice(0, 36);
 
-function summarize({ rounds, scores, starts }, now) {
+const pidOf = (p) => (p.match(/__p([0-9a-f]{8})__/i) || [])[1];
+
+function summarize({ rounds, scores, starts, prepost = [] }, now) {
   const today = kstDay(now);
   const t = now.getTime();
-  const plays = [...rounds, ...scores].map((b) => ({ ...parseEntry(b.pathname), at: new Date(b.uploadedAt).getTime() })).filter((e) => e.id);
+  const plays = [
+    ...[...rounds, ...scores].map((b) => ({ ...parseEntry(b.pathname), at: new Date(b.uploadedAt).getTime() })).filter((e) => e.id),
+    ...prepost.map((b) => ({ id: b.pathname, pid: pidOf(b.pathname), at: new Date(b.uploadedAt).getTime() })),
+  ];
   const roundIds = new Set(rounds.map((b) => parseEntry(b.pathname)?.id).filter(Boolean));
 
   const active = new Set(plays.filter((e) => t - e.at <= ACTIVE_DONE_MIN * 60e3).map((e) => e.pid));
@@ -63,10 +68,11 @@ export default async function handler(req, res) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(503).json({ ok: false, error: 'storage_not_configured' });
   try {
     const now = new Date();
-    const [rounds, scores, starts, pilot] = await Promise.all([
+    const [rounds, scores, starts, prepost, pilot] = await Promise.all([
       listAll('sessions/'),
       listAll('scores/'),
       listAll('funnel/start/'),
+      listAll('prepost/'),
       listAll('pilot/'),
     ]);
     const pil = (p) => pilot.filter((b) => b.pathname.startsWith(p));
@@ -75,8 +81,8 @@ export default async function handler(req, res) {
       ok: true,
       generated_at: now.toISOString(),
       today_kst: kstDay(now),
-      ...summarize({ rounds, scores, starts }, now),
-      pilot: summarize({ rounds: pil('pilot/sessions/'), scores: pil('pilot/scores/'), starts: pil('pilot/start/') }, now),
+      ...summarize({ rounds, scores, starts, prepost }, now),
+      pilot: summarize({ rounds: pil('pilot/sessions/'), scores: pil('pilot/scores/'), starts: pil('pilot/start/'), prepost: pil('pilot/prepost/') }, now),
     });
   } catch (err) {
     console.error('stats failed', err);

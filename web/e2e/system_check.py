@@ -127,7 +127,7 @@ def main():
                 page.wait_for_timeout(300)
                 page.screenshot(path=str(shots / '1-hub.png'), full_page=True)
             page.evaluate(ROBOT, {'delay': ROBOT_DELAY_MS, 'earlyTrial': EARLY_TRIAL})
-            page.click('.card.hue-amber')
+            page.click('[data-game="reaction"]')
             if shots:
                 page.screenshot(path=str(shots / '2-intro.png'), full_page=True)
             page.click('text=시작')

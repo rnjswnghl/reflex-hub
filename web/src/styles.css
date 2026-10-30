@@ -12,6 +12,9 @@
   --rose: #ff5d8f;
   --teal: #2fd3c0;
   --violet: #9b7bff;
+  --lime: #8be04e;
+  --sky: #58c4ff;
+  --orange: #ff8a3d;
   --hue: var(--amber);
   /* 실험 화면 */
   --stage: #2a2c31;
@@ -24,6 +27,9 @@
 .hue-rose { --hue: var(--rose); }
 .hue-teal { --hue: var(--teal); }
 .hue-violet { --hue: var(--violet); }
+.hue-lime { --hue: var(--lime); }
+.hue-sky { --hue: var(--sky); }
+.hue-orange { --hue: var(--orange); }
 
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; margin: 0; }
@@ -176,3 +182,59 @@ button { font: inherit; color: inherit; }
 .progress { position: absolute; left: 0; right: 0; top: 0; height: 3px; }
 .progress > div { height: 100%; background: var(--fix); opacity: 0.5; transition: width 0.2s; }
 .block-label { position: absolute; top: 18px; left: 0; right: 0; text-align: center; color: var(--fix); font-size: 13px; pointer-events: none; }
+
+/* ---------- 허브 구획 ---------- */
+.section-title { margin: 6px 0 -8px; font-size: 15px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
+.section-title small { display: block; font-weight: 400; font-size: 13px; margin-top: 2px; }
+.card-sub { font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; color: var(--hue); margin-left: 8px; vertical-align: 3px; }
+
+/* ---------- 결과 문장 ---------- */
+.insight { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--hue); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.insight p { margin: 0; line-height: 1.65; font-size: 15px; }
+.insight b { color: var(--hue); }
+.insight .muted { font-size: 13px; }
+
+/* ---------- 딱 N초 ---------- */
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.seg button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 14px 0; font-weight: 700; font-size: 17px; cursor: pointer; }
+.seg button.on { border-color: var(--hue); background: color-mix(in srgb, var(--hue) 20%, var(--surface)); color: var(--hue); }
+.timer { flex-direction: column; gap: 10px; }
+.timer.done { color: var(--text); }
+.timer-diff { font-family: 'Noto Sans KR', sans-serif; font-size: 18px; font-weight: 700; color: var(--hue); }
+
+/* ---------- 전후 비교 ---------- */
+.intro h1 .sub { display: block; font-size: 22px; color: var(--text); margin-top: 4px; }
+.flow { margin: 0; padding: 0; list-style: none; counter-reset: f; display: flex; flex-direction: column; gap: 8px; }
+.flow li { counter-increment: f; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 46px; position: relative; line-height: 1.5; }
+.flow li::before { content: counter(f); position: absolute; left: 14px; top: 12px; width: 22px; height: 22px; border-radius: 50%; background: var(--hue); color: #15121f; font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.flow li b { margin-right: 6px; }
+.prepost-bars { display: flex; flex-direction: column; gap: 8px; }
+.pp-row { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center; }
+.pp-label { color: var(--muted); font-size: 14px; }
+.pp-track { height: 14px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.pp-fill { height: 100%; background: var(--hue); border-radius: 999px; }
+.pp-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.pp-val small { color: var(--muted); }
+
+.mid { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; user-select: none; -webkit-user-select: none; }
+.mid-title { margin: 0; font-size: 26px; font-weight: 700; }
+.mid-sub { margin: 0; color: var(--muted); }
+.mid-left { position: absolute; top: 18px; right: 20px; font-family: 'JetBrains Mono', monospace; color: var(--muted); font-size: 15px; }
+.mid-left.light { color: rgba(255, 255, 255, 0.85); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+.mid.control { background: #6f7176; color: #f1f1f1; }
+.mid.control .mid-sub, .mid.control .mid-left { color: #dedede; }
+.mid.meadow { background: linear-gradient(180deg, #9fd3f2 0%, #cdeaf7 42%, #bfe3a0 43%); overflow: hidden; }
+.hill { position: absolute; border-radius: 50%; }
+.hill.h1 { width: 160vw; height: 70vh; left: -40vw; top: 45%; background: radial-gradient(ellipse at 50% 20%, #7cc35a, #4f9a3a 70%); }
+.hill.h2 { width: 140vw; height: 65vh; left: 10vw; top: 55%; background: radial-gradient(ellipse at 40% 20%, #6bb64b, #3d8a2e 70%); }
+.hill.h3 { width: 170vw; height: 60vh; left: -60vw; top: 68%; background: radial-gradient(ellipse at 60% 15%, #5aa83e, #2f7524 70%); }
+.flowers { position: absolute; inset: 60% 0 0 0;
+  background-image: radial-gradient(circle, #ffe066 0 3px, transparent 4px), radial-gradient(circle, #ffffff 0 2.5px, transparent 3.5px), radial-gradient(circle, #ff9ec4 0 2.5px, transparent 3.5px);
+  background-size: 53px 37px, 41px 29px, 67px 43px; background-position: 0 0, 17px 11px, 31px 23px; opacity: 0.9; }
+.mid.breath { background: #10233a; color: #e9f5ff; }
+.breath-ring { width: 220px; height: 220px; border-radius: 50%; border: 3px solid var(--sky); box-shadow: 0 0 40px rgba(88, 196, 255, 0.25) inset; transition: transform 4s ease-in-out; transform: scale(0.55); }
+.breath-ring.in { transform: scale(1); }
+.breath-ring.out { transform: scale(0.55); }
+.mid.warm { background: var(--bg2); }
+.tap-pad { width: min(72vw, 280px); aspect-ratio: 1; border-radius: 28px; border: 0; background: var(--orange); color: #1d0f05; font-size: 26px; font-weight: 700; cursor: pointer; touch-action: manipulation; box-shadow: 0 6px 0 #a3501a; }
+.tap-pad:active { transform: translateY(4px); box-shadow: 0 2px 0 #a3501a; }

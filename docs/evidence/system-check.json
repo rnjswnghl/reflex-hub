@@ -9,25 +9,25 @@
     "rows_main": 14,
     "catch_rows": 4,
     "status_counts": {
-      "ok": 14,
+      "ok": 13,
       "anticipation": 1,
-      "catch_ok": 3
+      "catch_ok": 4
     },
     "paired_foreperiods": true,
     "cue_target_actual_ms": {
-      "min": 498.1,
+      "min": 499.8,
       "median": 500,
-      "max": 500.1
+      "max": 501
     },
     "cue_on_actual_ms": {
-      "min": 98.1,
+      "min": 99.9,
       "median": 100,
-      "max": 100.1
+      "max": 100.8
     },
     "recorded_rt_ms": {
-      "min": 250.2,
-      "median": 250.3,
-      "max": 250.6
+      "min": 250.1,
+      "median": 250.2,
+      "max": 250.4
     },
     "time_source": [
       "event"
@@ -44,17 +44,17 @@
     },
     "paired_foreperiods": true,
     "cue_target_actual_ms": {
-      "min": 499.9,
-      "median": 500.05,
-      "max": 500.6
+      "min": 499.8,
+      "median": 499.95,
+      "max": 500.1
     },
     "cue_on_actual_ms": {
-      "min": 99.9,
-      "median": 100,
-      "max": 100.2
+      "min": 99.8,
+      "median": 99.9,
+      "max": 100
     },
     "recorded_rt_ms": {
-      "min": 250.1,
+      "min": 250.2,
       "median": 250.3,
       "max": 250.4
     },
